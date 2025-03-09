@@ -1,3 +1,37 @@
+
+<html>
+<body>
+
+IFRAME / DIV
+<br><br>
+
+
+<div id="contentContainer"></div>
+
+<script>
+  // Base64-encoded string (replace this with your encoded URL)
+  const base64EncodedURL = "aHR0cHM6Ly9leGFtcGxlLmNvbQ==";
+
+  // Decode the Base64 string
+  const decodedURL = atob(base64EncodedURL);
+
+  // Fetch the content of the decoded URL and insert it into the div
+  fetch(decodedURL)
+    .then(response => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+      return response.text();
+    })
+    .then(htmlContent => {
+      // Insert the fetched HTML content into the div
+      document.getElementById("contentContainer").innerHTML = htmlContent;
+    })
+    .catch(error => {
+      console.error('Error fetching or inserting content:', error);
+    });
+</script>
+
 PICKAXE
 
 <div id="pickaxe-inline-Social_VQ5TE"></div>
@@ -23,3 +57,8 @@ document.head.appendChild(e)};_interaxAI();
 </script>
 
 
+
+
+
+</body>
+</html>
