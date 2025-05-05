@@ -2,473 +2,404 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>AI Chat SPA - Gemini & Mistral</title>
-  <!-- Google Fonts for modern look -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <title>AI Chat SPA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!-- Bootstrap CSS for layout and responsiveness -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <!-- Font Awesome for icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', Arial, sans-serif;
+    html, body {
+      height: 100%;
       background: #f7f7f8;
-      color: #23272f;
-      height: 100vh;
+    }
+    body {
+      min-height: 100vh;
+      margin: 0;
+    }
+    #app-container {
       display: flex;
       flex-direction: column;
-    }
-    #app {
-      display: flex;
       height: 100vh;
-    }
-    .sidebar {
-      width: 260px;
+      max-width: 600px;
+      margin: 0 auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
       background: #fff;
-      border-right: 1px solid #e3e6ea;
-      display: flex;
-      flex-direction: column;
-      padding: 0 0 12px 0;
-      position: relative;
-      min-width: 200px;
     }
-    .sidebar-header {
-      padding: 20px 24px 12px 24px;
-      border-bottom: 1px solid #e3e6ea;
+    #header {
       display: flex;
       align-items: center;
-      gap: 12px;
+      padding: 1rem;
+      border-bottom: 1px solid #eee;
+      background: #f0f0f0;
+      gap: 1rem;
     }
-    .picker {
-      font-size: 1rem;
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid #e3e6ea;
-      background: #f7f7f8;
-      margin-right: 8px;
+    #service-picker {
+      min-width: 130px;
     }
-    .api-key-input {
+    #chat-history {
       flex: 1;
-      font-size: 0.95rem;
-      padding: 4px 8px;
-      border-radius: 6px;
-      border: 1px solid #e3e6ea;
-      background: #f7f7f8;
-      margin-right: 4px;
-    }
-    .save-key-btn {
-      padding: 4px 10px;
-      border-radius: 6px;
-      border: none;
-      background: #4f8cff;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      font-size: 0.95rem;
-    }
-    .conversations {
-      flex: 1;
+      padding: 1.5rem 1rem 1rem 1rem;
       overflow-y: auto;
-      padding: 12px 0;
-    }
-    .conversation {
-      padding: 10px 24px;
-      cursor: pointer;
-      border-left: 4px solid transparent;
-      transition: background 0.15s, border-color 0.15s;
-      color: #23272f;
-      font-size: 1rem;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-    .conversation.active {
-      background: #eaf1ff;
-      border-left: 4px solid #4f8cff;
-      font-weight: 600;
-    }
-    .new-convo-btn {
-      position: absolute;
-      left: 16px;
-      bottom: 16px;
-      right: 16px;
-      width: calc(100% - 32px);
-      padding: 10px 0;
-      background: #4f8cff;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      box-shadow: 0 2px 8px rgba(79,140,255,0.08);
-      transition: background 0.15s;
-    }
-    .new-convo-btn:hover {
-      background: #376fc9;
-    }
-    .main {
-      flex: 1;
+      background: #fafbfc;
       display: flex;
       flex-direction: column;
-      background: #f7f7f8;
-      height: 100vh;
-      min-width: 0;
+      gap: 1.1rem;
     }
-    .chat-header {
-      padding: 18px 32px 12px 32px;
-      font-size: 1.2rem;
-      font-weight: 600;
-      color: #4f8cff;
-      border-bottom: 1px solid #e3e6ea;
-      background: #fff;
-    }
-    .chat-messages {
-      flex: 1;
-      padding: 24px 32px 16px 32px;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 18px;
-    }
-    .msg {
+    .chat-message {
       display: flex;
       align-items: flex-start;
-      gap: 12px;
-      max-width: 700px;
-    }
-    .msg.user .bubble {
-      background: #4f8cff;
-      color: #fff;
-      align-self: flex-end;
-      border-bottom-right-radius: 0;
-    }
-    .msg.assistant .bubble {
-      background: #fff;
-      color: #23272f;
-      border: 1px solid #e3e6ea;
-      align-self: flex-start;
-      border-bottom-left-radius: 0;
-    }
-    .bubble {
-      padding: 12px 16px;
-      border-radius: 14px;
-      font-size: 1.05rem;
-      line-height: 1.5;
-      box-shadow: 0 1px 4px rgba(0,0,0,0.03);
-      max-width: 90vw;
+      gap: 0.7rem;
+      padding: 0.6rem 0.9rem;
+      border-radius: 1rem;
+      max-width: 85%;
       word-break: break-word;
     }
-    .msg .avatar {
-      width: 32px;
-      height: 32px;
+    .chat-message.user {
+      align-self: flex-end;
+      background: #e6f0ff;
+      color: #222;
+    }
+    .chat-message.assistant {
+      align-self: flex-start;
+      background: #f1f3f4;
+      color: #222;
+    }
+    #footer {
+      border-top: 1px solid #eee;
+      padding: 0.7rem 1rem 0.7rem 1rem;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    #new-convo-btn {
+      align-self: flex-start;
+      margin-bottom: 0.3rem;
+    }
+    #chat-input-row {
+      display: flex;
+      gap: 0.7rem;
+      align-items: center;
+    }
+    #chat-input {
+      flex: 1;
+      border-radius: 1.2rem;
+      border: 1px solid #ccc;
+      padding: 0.7rem 1rem;
+      outline: none;
+      font-size: 1rem;
+      background: #fff;
+      resize: none;
+      min-height: 38px;
+      max-height: 120px;
+    }
+    #send-btn {
       border-radius: 50%;
-      background: #e3e6ea;
+      width: 44px;
+      height: 44px;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
-      color: #4f8cff;
-      flex-shrink: 0;
-    }
-    .msg.user .avatar {
-      background: #4f8cff;
-      color: #fff;
-    }
-    .chat-input-row {
-      display: flex;
-      align-items: flex-end;
-      gap: 8px;
-      padding: 16px 32px;
-      background: #fff;
-      border-top: 1px solid #e3e6ea;
-    }
-    .chat-input {
-      flex: 1;
-      font-size: 1.07rem;
-      padding: 12px 16px;
-      border-radius: 10px;
-      border: 1px solid #e3e6ea;
-      background: #f7f7f8;
-      resize: none;
-      min-height: 44px;
-      max-height: 120px;
-      outline: none;
-      transition: border 0.15s;
-    }
-    .send-btn {
-      background: #4f8cff;
+      background: #1976d2;
       color: #fff;
       border: none;
-      border-radius: 10px;
-      padding: 12px 20px;
-      font-size: 1.1rem;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.15s;
+      font-size: 1.3rem;
+      transition: background 0.2s;
     }
-    .send-btn:disabled {
-      background: #b5d0ff;
-      cursor: not-allowed;
+    #send-btn:disabled {
+      background: #b3c6e0;
+      color: #fff;
     }
-    @media (max-width: 700px) {
-      .sidebar { width: 56px; min-width: 56px; }
-      .sidebar-header, .conversation { padding-left: 10px; padding-right: 10px; }
-      .main { padding: 0; }
-      .chat-header, .chat-messages, .chat-input-row { padding-left: 10px; padding-right: 10px; }
-      .new-convo-btn { left: 6px; right: 6px; width: calc(100% - 12px);}
+    #api-key-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    #api-key-input {
+      width: 180px;
+      border-radius: 0.4rem;
+      border: 1px solid #ccc;
+      padding: 0.3rem 0.7rem;
+      font-size: 1rem;
+    }
+    #save-key-btn {
+      border-radius: 0.4rem;
+      border: none;
+      background: #1976d2;
+      color: #fff;
+      padding: 0.3rem 0.8rem;
+      font-size: 1rem;
+    }
+    @media (max-width: 600px) {
+      #app-container {
+        max-width: 100vw;
+        height: 100vh;
+      }
+      #chat-history {
+        padding: 1rem 0.3rem 0.5rem 0.3rem;
+      }
+      #footer {
+        padding: 0.5rem 0.3rem 0.5rem 0.3rem;
+      }
     }
   </style>
 </head>
 <body>
-<div id="app"></div>
-<script>
-/* --- Service Definitions --- */
-const SERVICES = [
-  {
-    id: 'gemini',
-    name: 'Gemini',
-    icon: '<i class="fa-solid fa-gem"></i>',
-    apiKeyName: 'gemini_api_key',
-    sendMessage: async ({apiKey, messages}) => {
-      // Gemini API: https://ai.google.dev/tutorials/rest_quickstart
-      const url = "https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=" + encodeURIComponent(apiKey);
-      const body = {
-        contents: messages.map(m => ({
-          role: m.role === 'user' ? 'user' : 'model',
-          parts: [{text: m.content}]
-        }))
-      };
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (data && data.candidates && data.candidates[0] && data.candidates[0].content && data.candidates[0].content.parts[0]) {
-        return data.candidates[0].content.parts[0].text;
-      }
-      throw new Error(data.error?.message || "No response from Gemini");
-    }
-  },
-  {
-    id: 'mistral',
-    name: 'Mistral',
-    icon: '<i class="fa-solid fa-wind"></i>',
-    apiKeyName: 'mistral_api_key',
-    sendMessage: async ({apiKey, messages}) => {
-      // Mistral API: https://docs.mistral.ai/api/
-      const url = "https://api.mistral.ai/v1/chat/completions";
-      const body = {
-        model: "mistral-large-latest",
-        messages: messages.map(m => ({
-          role: m.role,
-          content: m.content
-        }))
-      };
-      const res = await fetch(url, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": "Bearer " + apiKey
-        },
-        body: JSON.stringify(body)
-      });
-      const data = await res.json();
-      if (data && data.choices && data.choices[0] && data.choices[0].message) {
-        return data.choices[0].message.content;
-      }
-      throw new Error(data.error?.message || "No response from Mistral");
-    }
-  }
-];
-
-/* --- Local Storage Helpers --- */
-function saveApiKey(serviceId, key) {
-  localStorage.setItem(`${serviceId}_api_key`, key);
-}
-function getApiKey(serviceId) {
-  return localStorage.getItem(`${serviceId}_api_key`) || '';
-}
-function saveConversations(serviceId, conversations) {
-  localStorage.setItem(`${serviceId}_conversations`, JSON.stringify(conversations));
-}
-function loadConversations(serviceId) {
-  const raw = localStorage.getItem(`${serviceId}_conversations`);
-  return raw ? JSON.parse(raw) : [];
-}
-
-/* --- State --- */
-let state = {
-  serviceId: SERVICES[0].id,
-  apiKeys: {},
-  conversations: {},
-  currentConversationId: null
-};
-
-/* --- Initialization --- */
-function initState() {
-  state.apiKeys = {};
-  state.conversations = {};
-  for (const svc of SERVICES) {
-    state.apiKeys[svc.id] = getApiKey(svc.id);
-    state.conversations[svc.id] = loadConversations(svc.id);
-    if (!state.conversations[svc.id].length) {
-      // Create a default conversation
-      const id = makeId();
-      state.conversations[svc.id] = [{
-        id,
-        name: "New Chat",
-        messages: []
-      }];
-      saveConversations(svc.id, state.conversations[svc.id]);
-    }
-  }
-  state.currentConversationId = state.conversations[state.serviceId][0].id;
-}
-function makeId() {
-  return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
-}
-
-/* --- UI Rendering --- */
-function render() {
-  const svc = SERVICES.find(s => s.id === state.serviceId);
-  const conversations = state.conversations[state.serviceId];
-  const currentConv = conversations.find(c => c.id === state.currentConversationId) || conversations[0];
-
-  document.getElementById('app').innerHTML = `
-    <div class="sidebar">
-      <div class="sidebar-header">
-        <select class="picker" id="service-picker">
-          ${SERVICES.map(s => `<option value="${s.id}" ${s.id === state.serviceId ? 'selected' : ''}>${s.icon} ${s.name}</option>`).join('')}
-        </select>
-        <input class="api-key-input" id="api-key-input" type="password" placeholder="${svc.name} API Key" value="${state.apiKeys[svc.id] || ''}">
-        <button class="save-key-btn" id="save-key-btn" title="Save API Key"><i class="fa-solid fa-floppy-disk"></i></button>
+  <div id="app-container">
+    <div id="header">
+      <select id="service-picker" class="form-select form-select-sm"></select>
+      <div id="api-key-row">
+        <input type="password" id="api-key-input" class="form-control form-control-sm" placeholder="Enter API key">
+        <button id="save-key-btn" class="btn btn-sm btn-primary">Save</button>
       </div>
-      <div class="conversations" id="conversations-list">
-        ${conversations.map(c => `
-          <div class="conversation${c.id === state.currentConversationId ? ' active' : ''}" data-id="${c.id}" title="${c.name}">
-            <i class="fa-regular fa-comments"></i> ${c.name}
-          </div>
-        `).join('')}
-      </div>
-      <button class="new-convo-btn" id="new-convo-btn"><i class="fa-solid fa-plus"></i> New conversation</button>
     </div>
-    <div class="main">
-      <div class="chat-header">${svc.icon} ${svc.name}</div>
-      <div class="chat-messages" id="chat-messages">
-        ${currentConv.messages.length === 0 ? `
-          <div style="color:#b0b8c1; font-size:1.1rem; margin-top:40px;">Start the conversation…</div>
-        ` : currentConv.messages.map(m => `
-          <div class="msg ${m.role}">
-            <div class="avatar">${m.role === 'user' ? '<i class="fa-solid fa-user"></i>' : '<i class="fa-solid fa-robot"></i>'}</div>
-            <div class="bubble">${escapeHTML(m.content)}</div>
-          </div>
-        `).join('')}
+    <div id="chat-history"></div>
+    <div id="footer">
+      <button id="new-convo-btn" class="btn btn-outline-secondary btn-sm"><i class="fa fa-plus"></i> New conversation</button>
+      <div id="chat-input-row">
+        <textarea id="chat-input" rows="1" placeholder="Type your message..."></textarea>
+        <button id="send-btn" disabled><i class="fa fa-paper-plane"></i></button>
       </div>
-      <form class="chat-input-row" id="chat-form" autocomplete="off">
-        <textarea class="chat-input" id="chat-input" placeholder="Type your message…" rows="1"></textarea>
-        <button class="send-btn" id="send-btn" type="submit"><i class="fa-solid fa-paper-plane"></i></button>
-      </form>
     </div>
-  `;
+  </div>
 
-  // Event bindings
-  document.getElementById('service-picker').onchange = e => {
-    state.serviceId = e.target.value;
-    // Switch to first conversation of new service
-    const newConvs = state.conversations[state.serviceId];
-    state.currentConversationId = newConvs.length ? newConvs[0].id : null;
-    render();
-  };
-  document.getElementById('api-key-input').oninput = e => {
-    state.apiKeys[svc.id] = e.target.value;
-  };
-  document.getElementById('save-key-btn').onclick = () => {
-    saveApiKey(svc.id, state.apiKeys[svc.id]);
-    alert('API key saved for ' + svc.name);
-  };
-  document.getElementById('conversations-list').onclick = e => {
-    const el = e.target.closest('.conversation');
-    if (el) {
-      state.currentConversationId = el.dataset.id;
+  <script>
+    // --- Service Definitions ---
+    const SERVICES = [
+      {
+        id: 'together',
+        name: 'Together.ai',
+        apiKeyName: 'together_api_key',
+        supports: ['chat'],
+        // Default model for demo; can be made user-selectable
+        chatModel: 'mistralai/Mixtral-8x7B-Instruct-v0.1',
+        sendChat: async ({messages, apiKey, model}) => {
+          // Together.ai chat completions endpoint
+          const url = 'https://api.together.xyz/v1/chat/completions';
+          const res = await fetch(url, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${apiKey}`,
+            },
+            body: JSON.stringify({
+              model,
+              messages,
+              max_tokens: 1024,
+              temperature: 0.7
+            })
+          });
+          if (!res.ok) {
+            const err = await res.json().catch(() => ({}));
+            throw new Error(err.error?.message || res.statusText || 'API error');
+          }
+          const data = await res.json();
+          // Return the assistant's reply
+          return data.choices?.[0]?.message?.content || '[No response]';
+        }
+      },
+      // Add more services here as needed, e.g. Gemini, OpenAI, etc.
+    ];
+
+    // --- State ---
+    let currentServiceId = localStorage.getItem('selected_service') || SERVICES[0].id;
+    let apiKeys = {};
+    let conversations = {}; // {serviceId: [ {id, messages: [{role, content}], createdAt} ]}
+    let currentConversationId = null;
+
+    // --- DOM Elements ---
+    const servicePicker = document.getElementById('service-picker');
+    const apiKeyInput = document.getElementById('api-key-input');
+    const saveKeyBtn = document.getElementById('save-key-btn');
+    const chatHistory = document.getElementById('chat-history');
+    const chatInput = document.getElementById('chat-input');
+    const sendBtn = document.getElementById('send-btn');
+    const newConvoBtn = document.getElementById('new-convo-btn');
+
+    // --- Utility Functions ---
+    function getServiceById(id) {
+      return SERVICES.find(s => s.id === id);
+    }
+    function getApiKey(serviceId) {
+      return localStorage.getItem(getServiceById(serviceId).apiKeyName) || '';
+    }
+    function setApiKey(serviceId, key) {
+      localStorage.setItem(getServiceById(serviceId).apiKeyName, key);
+    }
+    function saveConversations() {
+      localStorage.setItem('chat_conversations', JSON.stringify(conversations));
+    }
+    function loadConversations() {
+      conversations = JSON.parse(localStorage.getItem('chat_conversations') || '{}');
+    }
+    function getCurrentConversations() {
+      return conversations[currentServiceId] || [];
+    }
+    function saveCurrentConversations(list) {
+      conversations[currentServiceId] = list;
+      saveConversations();
+    }
+    function uuid() {
+      return 'xxxxxxxxyxxx'.replace(/[xy]/g, c => {
+        const r = Math.random() * 16 | 0;
+        return (c === 'x' ? r : (r&0x3|0x8)).toString(16);
+      });
+    }
+    function formatDate(ts) {
+      const d = new Date(ts);
+      return d.toLocaleString();
+    }
+
+    // --- UI Rendering ---
+    function renderServicePicker() {
+      servicePicker.innerHTML = '';
+      SERVICES.forEach(s => {
+        const opt = document.createElement('option');
+        opt.value = s.id;
+        opt.textContent = s.name;
+        servicePicker.appendChild(opt);
+      });
+      servicePicker.value = currentServiceId;
+    }
+    function renderApiKeyInput() {
+      apiKeyInput.value = getApiKey(currentServiceId);
+    }
+    function renderChatHistory() {
+      chatHistory.innerHTML = '';
+      const conv = getCurrentConversation();
+      if (!conv) {
+        chatHistory.innerHTML = '<div class="text-secondary text-center mt-5">Start a new conversation!</div>';
+        return;
+      }
+      conv.messages.forEach(msg => {
+        const div = document.createElement('div');
+        div.className = 'chat-message ' + (msg.role === 'user' ? 'user' : 'assistant');
+        div.innerHTML = `<span>${msg.role === 'user' ? '<i class="fa fa-user"></i>' : '<i class="fa fa-robot"></i>'}</span>
+          <span>${escapeHtml(msg.content)}</span>`;
+        chatHistory.appendChild(div);
+      });
+      // Scroll to bottom
+      chatHistory.scrollTop = chatHistory.scrollHeight;
+    }
+    function render() {
+      renderServicePicker();
+      renderApiKeyInput();
+      renderChatHistory();
+      sendBtn.disabled = !chatInput.value.trim() || !getApiKey(currentServiceId) || !getCurrentConversation();
+    }
+    function escapeHtml(str) {
+      return (str||'').replace(/[&<>"']/g, c => ({
+        '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
+      })[c]);
+    }
+
+    // --- Conversation Management ---
+    function createNewConversation() {
+      const convs = getCurrentConversations();
+      const newConv = {
+        id: uuid(),
+        messages: [],
+        createdAt: Date.now()
+      };
+      convs.push(newConv);
+      saveCurrentConversations(convs);
+      currentConversationId = newConv.id;
+      localStorage.setItem('current_conversation_' + currentServiceId, currentConversationId);
       render();
     }
-  };
-  document.getElementById('new-convo-btn').onclick = () => {
-    const newId = makeId();
-    const conv = {id: newId, name: "New Chat", messages: []};
-    state.conversations[svc.id].unshift(conv);
-    state.currentConversationId = newId;
-    saveConversations(svc.id, state.conversations[svc.id]);
-    render();
-  };
-  document.getElementById('chat-form').onsubmit = async e => {
-    e.preventDefault();
-    const input = document.getElementById('chat-input');
-    const text = input.value.trim();
-    if (!text) return;
-    input.value = '';
-    await sendMessage(text);
-  };
-  // Enter to send, Shift+Enter for newline
-  document.getElementById('chat-input').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter' && !e.shiftKey) {
-      e.preventDefault();
-      document.getElementById('send-btn').click();
+    function getCurrentConversation() {
+      const convs = getCurrentConversations();
+      if (!currentConversationId) {
+        currentConversationId = localStorage.getItem('current_conversation_' + currentServiceId);
+      }
+      let conv = convs.find(c => c.id === currentConversationId);
+      if (!conv && convs.length) {
+        conv = convs[convs.length-1];
+        currentConversationId = conv.id;
+        localStorage.setItem('current_conversation_' + currentServiceId, currentConversationId);
+      }
+      return conv;
     }
-  });
-  // Scroll to bottom
-  setTimeout(() => {
-    const chatMessages = document.getElementById('chat-messages');
-    chatMessages.scrollTop = chatMessages.scrollHeight;
-  }, 50);
-}
+    function addMessageToCurrentConversation(role, content) {
+      const conv = getCurrentConversation();
+      if (!conv) return;
+      conv.messages.push({role, content});
+      saveCurrentConversations(getCurrentConversations());
+    }
 
-/* --- Messaging Logic --- */
-async function sendMessage(text) {
-  const svc = SERVICES.find(s => s.id === state.serviceId);
-  const apiKey = state.apiKeys[svc.id];
-  if (!apiKey) {
-    alert('Please enter and save your ' + svc.name + ' API key.');
-    return;
-  }
-  const conversations = state.conversations[svc.id];
-  const conv = conversations.find(c => c.id === state.currentConversationId);
-  if (!conv) return;
+    // --- Event Handlers ---
+    servicePicker.addEventListener('change', () => {
+      currentServiceId = servicePicker.value;
+      localStorage.setItem('selected_service', currentServiceId);
+      renderApiKeyInput();
+      // Load conversation for this service
+      currentConversationId = null;
+      render();
+    });
+    saveKeyBtn.addEventListener('click', () => {
+      setApiKey(currentServiceId, apiKeyInput.value.trim());
+      render();
+    });
+    apiKeyInput.addEventListener('input', () => {
+      saveKeyBtn.disabled = !apiKeyInput.value.trim();
+    });
+    chatInput.addEventListener('input', () => {
+      sendBtn.disabled = !chatInput.value.trim() || !getApiKey(currentServiceId) || !getCurrentConversation();
+      // Auto-grow textarea
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 120) + 'px';
+    });
+    chatInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendBtn.click();
+      }
+    });
+    sendBtn.addEventListener('click', async () => {
+      const msg = chatInput.value.trim();
+      if (!msg) return;
+      chatInput.value = '';
+      sendBtn.disabled = true;
+      addMessageToCurrentConversation('user', msg);
+      renderChatHistory();
+      // Send to API
+      const service = getServiceById(currentServiceId);
+      const conv = getCurrentConversation();
+      try {
+        const reply = await service.sendChat({
+          messages: conv.messages.map(m => ({role: m.role, content: m.content})),
+          apiKey: getApiKey(currentServiceId),
+          model: service.chatModel
+        });
+        addMessageToCurrentConversation('assistant', reply);
+      } catch (err) {
+        addMessageToCurrentConversation('assistant', '[Error: ' + (err.message || 'Failed to get response') + ']');
+      }
+      renderChatHistory();
+      sendBtn.disabled = false;
+      chatInput.focus();
+    });
+    newConvoBtn.addEventListener('click', () => {
+      createNewConversation();
+    });
 
-  conv.messages.push({role: 'user', content: text});
-  render();
-  try {
-    // Show "assistant is typing"
-    conv.messages.push({role: 'assistant', content: '…'});
-    render();
-    const messagesForApi = conv.messages
-      .filter(m => m.role === 'user' || m.role === 'assistant')
-      .map(m => ({role: m.role, content: m.content}));
-    // Remove the placeholder
-    conv.messages.pop();
-    const reply = await svc.sendMessage({apiKey, messages: messagesForApi});
-    conv.messages.push({role: 'assistant', content: reply});
-  } catch (err) {
-    conv.messages.pop();
-    conv.messages.push({role: 'assistant', content: '[Error: ' + (err.message || err) + ']'});
-  }
-  saveConversations(svc.id, conversations);
-  render();
-}
-
-/* --- Utility --- */
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function(m) {
-    return ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[m];
-  });
-}
-
-/* --- Start --- */
-initState();
-render();
-</script>
+    // --- Initialization ---
+    function init() {
+      loadConversations();
+      renderServicePicker();
+      renderApiKeyInput();
+      // Load or create conversation for current service
+      const convs = getCurrentConversations();
+      currentConversationId = localStorage.getItem('current_conversation_' + currentServiceId);
+      if (!convs.length) {
+        createNewConversation();
+      } else if (!getCurrentConversation()) {
+        currentConversationId = convs[convs.length-1].id;
+      }
+      render();
+    }
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
 </body>
 </html>
