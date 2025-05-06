@@ -1,562 +1,416 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>AI Chat SPA: Together AI & Gemini</title>
-  <!-- Google Fonts for clean UI -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <!-- Font Awesome for icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
-  <style>
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: #f7f7f8;
-      color: #222;
-      height: 100vh;
-      display: flex;
-      flex-direction: column;
-    }
-    .app-container {
-      display: flex;
-      height: 100vh;
-    }
-    .sidebar {
-      width: 280px;
-      background: #fff;
-      border-right: 1px solid #e5e7eb;
-      display: flex;
-      flex-direction: column;
-      padding: 0 0 12px 0;
-    }
-    .sidebar-header {
-      display: flex;
-      align-items: center;
-      padding: 18px 18px 12px 18px;
-      border-bottom: 1px solid #e5e7eb;
-      gap: 10px;
-    }
-    .service-picker {
-      font-size: 1rem;
-      padding: 6px 12px;
-      border-radius: 6px;
-      border: 1px solid #d1d5db;
-      background: #f3f4f6;
-      outline: none;
-    }
-    .api-key-form {
-      display: flex;
-      gap: 6px;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      padding: 0 18px;
-    }
-    .api-key-form input {
-      flex: 1;
-      padding: 6px 8px;
-      border-radius: 4px;
-      border: 1px solid #d1d5db;
-      font-size: 1rem;
-    }
-    .api-key-form button {
-      padding: 6px 12px;
-      border-radius: 4px;
-      border: none;
-      background: #6366f1;
-      color: #fff;
-      font-weight: 600;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .api-key-form button:hover {
-      background: #4f46e5;
-    }
-    .sidebar-convos {
-      flex: 1;
-      overflow-y: auto;
-      margin: 0 0 8px 0;
-      padding: 0 8px 0 8px;
-    }
-    .conversation-item {
-      padding: 10px 14px;
-      margin: 6px 0;
-      border-radius: 7px;
-      cursor: pointer;
-      transition: background 0.15s;
-      font-size: 1rem;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    .conversation-item.selected {
-      background: #e0e7ff;
-      font-weight: 600;
-    }
-    .conversation-item:not(.selected):hover {
-      background: #f3f4f6;
-    }
-    .sidebar-footer {
-      padding: 10px 18px 0 18px;
-      border-top: 1px solid #e5e7eb;
-    }
-    .new-convo-btn {
-      width: 100%;
-      padding: 8px 0;
-      border-radius: 6px;
-      border: none;
-      background: #22d3ee;
-      color: #fff;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .new-convo-btn:hover {
-      background: #06b6d4;
-    }
-    .main {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      height: 100vh;
-    }
-    .chat-header {
-      padding: 18px 26px 10px 26px;
-      border-bottom: 1px solid #e5e7eb;
-      background: #fff;
-      font-size: 1.2rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    .chat-history {
-      flex: 1;
-      overflow-y: auto;
-      padding: 28px 0 0 0;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-    }
-    .chat-message {
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-      max-width: 70%;
-      padding: 0 26px;
-    }
-    .chat-message.user {
-      align-self: flex-end;
-      text-align: right;
-    }
-    .chat-message.assistant {
-      align-self: flex-start;
-      text-align: left;
-    }
-    .bubble {
-      display: inline-block;
-      padding: 12px 14px;
-      border-radius: 14px;
-      font-size: 1.07rem;
-      background: #f1f5f9;
-      color: #222;
-      margin-bottom: 2px;
-      word-break: break-word;
-      white-space: pre-wrap;
-    }
-    .chat-message.user .bubble {
-      background: #6366f1;
-      color: #fff;
-    }
-    .chat-message.assistant .bubble {
-      background: #e0e7ff;
-      color: #222;
-    }
-    .chat-input-area {
-      display: flex;
-      align-items: flex-end;
-      padding: 18px 26px 18px 26px;
-      background: #fff;
-      border-top: 1px solid #e5e7eb;
-      gap: 10px;
-    }
-    .chat-input-area textarea {
-      flex: 1;
-      min-height: 38px;
-      max-height: 120px;
-      padding: 10px 12px;
-      font-size: 1rem;
-      border-radius: 7px;
-      border: 1px solid #d1d5db;
-      resize: vertical;
-      outline: none;
-      background: #f9fafb;
-      transition: border 0.2s;
-    }
-    .chat-input-area button {
-      padding: 10px 18px;
-      border-radius: 6px;
-      border: none;
-      background: #6366f1;
-      color: #fff;
-      font-weight: 600;
-      font-size: 1rem;
-      cursor: pointer;
-      transition: background 0.2s;
-    }
-    .chat-input-area button:disabled {
-      background: #c7d2fe;
-      cursor: not-allowed;
-    }
-    .chat-input-area button:not(:disabled):hover {
-      background: #4f46e5;
-    }
-    @media (max-width: 900px) {
-      .sidebar { width: 70px; }
-      .sidebar-header, .sidebar-footer, .api-key-form { padding-left: 8px; padding-right: 8px; }
-      .sidebar-header span, .conversation-item span { display: none; }
-      .sidebar-convos { padding: 0 2px; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Social AI Chat</title>
+<!-- Tailwind CSS CDN for styling -->
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  /* Custom scrollbar for chat history */
+  #chatHistory {
+    scrollbar-width: thin;
+    scrollbar-color: #a0aec0 transparent;
+  }
+  #chatHistory::-webkit-scrollbar {
+    width: 8px;
+  }
+  #chatHistory::-webkit-scrollbar-thumb {
+    background-color: #a0aec0;
+    border-radius: 4px;
+  }
+</style>
 </head>
-<body>
-<div class="app-container">
-  <div class="sidebar">
-    <div class="sidebar-header">
-      <select class="service-picker" id="servicePicker">
-        <option value="together">Together AI</option>
-        <option value="gemini">Gemini</option>
-      </select>
-      <span id="serviceLabel">Together AI</span>
+<body class="bg-gray-100 h-screen flex flex-col">
+
+<!-- Top bar: API picker and API key input -->
+<header class="flex items-center gap-4 bg-white p-4 shadow sticky top-0 z-10">
+  <label for="apiSelect" class="font-semibold text-gray-700">Select API:</label>
+  <select id="apiSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
+    <option value="together">Social AI</option>
+    <option value="gemini">Not Set</option>
+  </select>
+
+  <label for="apiKeyInput" class="ml-4 font-semibold text-gray-700">API Key:</label>
+  <input
+    id="apiKeyInput"
+    type="password"
+    placeholder="Enter API key"
+    class="border rounded px-2 py-1 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
+  />
+  <button
+    id="saveApiKeyBtn"
+    class="ml-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
+  >
+    Save
+  </button>
+</header>
+
+<!-- Main chat area -->
+<main class="flex flex-col flex-grow max-w-3xl mx-auto w-full p-4">
+  <!-- Conversation selector and New conversation button -->
+  <div class="flex justify-between items-center mb-2">
+    <div>
+      <label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label>
+      <select id="conversationSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
     </div>
-    <form class="api-key-form" id="apiKeyForm" autocomplete="off">
-      <input type="password" id="apiKeyInput" placeholder="Enter API key" required>
-      <button type="submit">Save</button>
-    </form>
-    <div class="sidebar-convos" id="convoList"></div>
-    <div class="sidebar-footer">
-      <button class="new-convo-btn" id="newConvoBtn"><i class="fa fa-plus"></i> New conversation</button>
-    </div>
+    <button
+      id="newConversationBtn"
+      class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
+      title="Start a new conversation"
+    >
+      New conversation
+    </button>
   </div>
-  <div class="main">
-    <div class="chat-header" id="chatHeader">
-      <i class="fa fa-robot"></i>
-      <span id="chatTitle">New conversation</span>
-    </div>
-    <div class="chat-history" id="chatHistory"></div>
-    <form class="chat-input-area" id="chatInputForm" autocomplete="off">
-      <textarea id="chatInput" rows="1" placeholder="Type your message..." required></textarea>
-      <button type="submit" id="sendBtn"><i class="fa fa-paper-plane"></i></button>
-    </form>
+
+  <!-- Chat history -->
+  <div
+    id="chatHistory"
+    class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh]"
+    aria-live="polite"
+    aria-atomic="false"
+  >
+    <!-- Messages will be appended here -->
   </div>
-</div>
+
+  <!-- Chat input form -->
+  <form id="chatForm" class="flex gap-2">
+    <textarea
+      id="chatInput"
+      rows="2"
+      placeholder="Type your message here..."
+      class="flex-grow border rounded px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+      required
+      aria-label="Chat message input"
+    ></textarea>
+    <button
+      type="submit"
+      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+      aria-label="Send message"
+    >
+      Send
+    </button>
+  </form>
+</main>
+
 <script>
-const SERVICES = {
-  together: {
-    label: "Together AI",
-    model: "meta-llama/Llama-4-Scout-17B-16E-Instruct",
-    apiKeyLabel: "Together AI",
-  },
-  gemini: {
-    label: "Gemini",
-    model: "gemini-2.0-flash",
-    apiKeyLabel: "Gemini",
-  }
-};
-
-const LS_KEYS = {
-  apiKey: (service) => `apiKey_${service}`,
-  conversations: (service) => `conversations_${service}`,
-  selectedConvo: (service) => `selectedConvo_${service}`,
-};
-
-let state = {
-  service: localStorage.getItem("lastService") || "together",
-  apiKeys: {
-    together: localStorage.getItem(LS_KEYS.apiKey("together")) || "",
-    gemini: localStorage.getItem(LS_KEYS.apiKey("gemini")) || "",
-  },
-  conversations: {
-    together: [],
-    gemini: [],
-  },
-  selectedConvoId: {
-    together: null,
-    gemini: null,
-  },
-  loading: false,
-};
-
-// --- DOM Elements ---
-const servicePicker = document.getElementById("servicePicker");
-const serviceLabel = document.getElementById("serviceLabel");
-const apiKeyForm = document.getElementById("apiKeyForm");
-const apiKeyInput = document.getElementById("apiKeyInput");
-const convoList = document.getElementById("convoList");
-const newConvoBtn = document.getElementById("newConvoBtn");
-const chatHeader = document.getElementById("chatHeader");
-const chatTitle = document.getElementById("chatTitle");
-const chatHistory = document.getElementById("chatHistory");
-const chatInputForm = document.getElementById("chatInputForm");
-const chatInput = document.getElementById("chatInput");
-const sendBtn = document.getElementById("sendBtn");
-
-// --- Utility functions for localStorage ---
-function saveApiKey(service, key) {
-  localStorage.setItem(LS_KEYS.apiKey(service), key);
-  state.apiKeys[service] = key;
-}
-function loadApiKey(service) {
-  return localStorage.getItem(LS_KEYS.apiKey(service)) || "";
-}
-function saveConversations(service, conversations) {
-  localStorage.setItem(LS_KEYS.conversations(service), JSON.stringify(conversations));
-  state.conversations[service] = conversations;
-}
-function loadConversations(service) {
-  const raw = localStorage.getItem(LS_KEYS.conversations(service));
-  return raw ? JSON.parse(raw) : [];
-}
-function saveSelectedConvo(service, convoId) {
-  localStorage.setItem(LS_KEYS.selectedConvo(service), convoId);
-  state.selectedConvoId[service] = convoId;
-}
-function loadSelectedConvo(service) {
-  return localStorage.getItem(LS_KEYS.selectedConvo(service));
-}
-function saveLastService(service) {
-  localStorage.setItem("lastService", service);
-}
-
-function uuid() {
-  // Simple UUID for conversations
-  return "cxxxxxxx".replace(/[x]/g, () =>
-    (Math.random() * 16 | 0).toString(16));
-}
-
-// --- Conversation Management ---
-function createNewConversation(service) {
-  const conversations = state.conversations[service];
-  const newConvo = {
-    id: uuid(),
-    title: "New conversation",
-    messages: [],
-    createdAt: Date.now(),
+(() => {
+  // Constants for localStorage keys
+  const STORAGE_KEYS = {
+    apiKeys: 'chatApp_apiKeys',
+    conversations: 'chatApp_conversations',
+    activeConversationId: 'chatApp_activeConversationId',
+    activeApi: 'chatApp_activeApi',
   };
-  conversations.unshift(newConvo);
-  saveConversations(service, conversations);
-  saveSelectedConvo(service, newConvo.id);
-  renderConvoList();
-  renderChat();
-}
 
-function selectConversation(service, convoId) {
-  saveSelectedConvo(service, convoId);
-  renderConvoList();
-  renderChat();
-}
+  // Supported APIs enum
+  const APIS = {
+    TOGETHER: 'together',
+    GEMINI: 'gemini',
+  };
 
-function addMessageToConversation(service, convoId, role, content) {
-  const conversations = state.conversations[service];
-  const convo = conversations.find(c => c.id === convoId);
-  if (!convo) return;
-  convo.messages.push({ role, content, timestamp: Date.now() });
-  if (role === "user" && convo.title === "New conversation") {
-    // Use first user message as title (truncated)
-    convo.title = content.length > 26 ? content.slice(0, 26) + "..." : content;
+const DEFAULT_TOGETHER_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ";
+
+
+  // Models for Together.ai and Gemini (fixed for demo)
+  const TOGETHER_MODEL = 'google/gemma-2-27b-it';
+  const GEMINI_MODEL = 'gemini-2.0-flash';
+
+  // DOM elements
+  const apiSelect = document.getElementById('apiSelect');
+  const apiKeyInput = document.getElementById('apiKeyInput');
+  const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+  const chatHistory = document.getElementById('chatHistory');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const newConversationBtn = document.getElementById('newConversationBtn');
+  const conversationSelect = document.getElementById('conversationSelect');
+
+  // In-memory state
+  let apiKeys = {}; // { together: key, gemini: key }
+  let conversations = {}; // { conversationId: { id, api, messages: [{role, content}], createdAt } }
+  let activeConversationId = null;
+  let activeApi = APIS.TOGETHER;
+
+  // Load from localStorage
+  function loadState() {
+    const storedApiKeys = localStorage.getItem(STORAGE_KEYS.apiKeys);
+    if (storedApiKeys) {
+      try {
+        apiKeys = JSON.parse(storedApiKeys);
+      } catch {}
+    }
+    const storedConversations = localStorage.getItem(STORAGE_KEYS.conversations);
+    if (storedConversations) {
+      try {
+        conversations = JSON.parse(storedConversations);
+      } catch {}
+    }
+    const storedActiveConv = localStorage.getItem(STORAGE_KEYS.activeConversationId);
+    if (storedActiveConv && conversations[storedActiveConv]) {
+      activeConversationId = storedActiveConv;
+    }
+    const storedActiveApi = localStorage.getItem(STORAGE_KEYS.activeApi);
+    if (storedActiveApi && Object.values(APIS).includes(storedActiveApi)) {
+      activeApi = storedActiveApi;
+    }
   }
-  saveConversations(service, conversations);
-  renderConvoList();
-  renderChat();
-}
 
-// --- Render Functions ---
-function renderServicePicker() {
-  servicePicker.value = state.service;
-  serviceLabel.textContent = SERVICES[state.service].label;
-}
-
-function renderApiKeyForm() {
-  apiKeyInput.value = state.apiKeys[state.service];
-  apiKeyInput.placeholder = `Enter ${SERVICES[state.service].apiKeyLabel} API key`;
-}
-
-function renderConvoList() {
-  const conversations = state.conversations[state.service];
-  const selectedId = state.selectedConvoId[state.service];
-  convoList.innerHTML = "";
-  if (conversations.length === 0) {
-    convoList.innerHTML = `<div style="padding: 20px 10px; color: #888; font-size: 1rem;">No conversations yet</div>`;
-    return;
+  // Save to localStorage
+  function saveState() {
+    localStorage.setItem(STORAGE_KEYS.apiKeys, JSON.stringify(apiKeys));
+    localStorage.setItem(STORAGE_KEYS.conversations, JSON.stringify(conversations));
+    if (activeConversationId) {
+      localStorage.setItem(STORAGE_KEYS.activeConversationId, activeConversationId);
+    }
+    localStorage.setItem(STORAGE_KEYS.activeApi, activeApi);
   }
-  conversations.forEach(convo => {
-    const div = document.createElement("div");
-    div.className = "conversation-item" + (convo.id === selectedId ? " selected" : "");
-    div.innerHTML = `<i class="fa fa-comments"></i><span>${convo.title}</span>`;
-    div.onclick = () => selectConversation(state.service, convo.id);
-    convoList.appendChild(div);
-  });
-}
 
-function renderChat() {
-  const conversations = state.conversations[state.service];
-  const selectedId = state.selectedConvoId[state.service];
-  const convo = conversations.find(c => c.id === selectedId);
-  chatHistory.innerHTML = "";
-  if (!convo) {
-    chatTitle.textContent = "New conversation";
-    return;
+  // Generate a simple unique ID for conversations
+  function generateId() {
+    return 'conv_' + Math.random().toString(36).substring(2, 10);
   }
-  chatTitle.textContent = convo.title;
-  convo.messages.forEach(msg => {
-    const msgDiv = document.createElement("div");
-    msgDiv.className = "chat-message " + (msg.role === "user" ? "user" : "assistant");
-    msgDiv.innerHTML = `<div class="bubble">${escapeHTML(msg.content)}</div>`;
-    chatHistory.appendChild(msgDiv);
-  });
-  if (state.loading) {
-    const loadingDiv = document.createElement("div");
-    loadingDiv.className = "chat-message assistant";
-    loadingDiv.innerHTML = `<div class="bubble"><i class="fa fa-spinner fa-spin"></i> Thinking...</div>`;
-    chatHistory.appendChild(loadingDiv);
+
+  // Update API key input field based on selected API
+  function updateApiKeyInput() {
+    apiKeyInput.value = apiKeys[activeApi] || '';
   }
-  chatHistory.scrollTop = chatHistory.scrollHeight;
-}
 
-function escapeHTML(str) {
-  return str.replace(/[&<>"']/g, function(m) {
-    return ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-    })[m];
-  });
-}
-
-// --- Chat API Calls ---
-async function sendMessageToAPI(service, apiKey, messages) {
-  if (service === "together") {
-    // Together AI API[3][6]
-    const endpoint = "https://api.together.ai/v1/chat/completions";
-    const payload = {
-      model: SERVICES.together.model,
-      messages: messages.map(m => ({
-        role: m.role,
-        content: [{ type: "text", text: m.content }]
-      })),
-    };
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify(payload),
+  // Render conversation selector options
+  function renderConversationList() {
+    // Filter conversations for active API
+    const convs = Object.values(conversations).filter(c => c.api === activeApi);
+    conversationSelect.innerHTML = '';
+    if (convs.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '(No conversations)';
+      opt.disabled = true;
+      conversationSelect.appendChild(opt);
+      activeConversationId = null;
+      saveState();
+      renderChatHistory();
+      return;
+    }
+    convs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    convs.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `Conversation ${c.id.substring(5, 13)}`;
+      conversationSelect.appendChild(opt);
     });
-    if (!res.ok) throw new Error(`Together API error: ${res.status}`);
-    const data = await res.json();
-    // The response is in data.choices[0].message.content[0].text
-    const reply = data.choices?.[0]?.message?.content?.[0]?.text || "No response";
-    return reply;
-  } else if (service === "gemini") {
-    // Gemini API[2]
-    const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${SERVICES.gemini.model}:generateContent?key=${apiKey}`;
-    const payload = {
-      contents: [
-        {
-          parts: messages.map(m => ({ text: (m.role === "user" ? m.content : "") })).filter(p => p.text)
-        }
-      ]
-    };
-    const res = await fetch(endpoint, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
+    // If current activeConversationId is not in filtered list, reset to first
+    if (!convs.find(c => c.id === activeConversationId)) {
+      activeConversationId = convs[0].id;
+      saveState();
+    }
+    conversationSelect.value = activeConversationId;
+    renderChatHistory();
+  }
+
+  // Render chat messages in chatHistory container
+  function renderChatHistory() {
+    chatHistory.innerHTML = '';
+    if (!activeConversationId || !conversations[activeConversationId]) {
+      chatHistory.innerHTML = '<p class="text-gray-500 italic">No conversation selected.</p>';
+      return;
+    }
+    const msgs = conversations[activeConversationId].messages;
+    msgs.forEach(msg => {
+      const div = document.createElement('div');
+      div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
+      const bubble = document.createElement('div');
+      bubble.className = msg.role === 'user'
+        ? 'inline-block bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
+        : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
+      bubble.textContent = msg.content;
+      div.appendChild(bubble);
+      chatHistory.appendChild(div);
     });
-    if (!res.ok) throw new Error(`Gemini API error: ${res.status}`);
-    const data = await res.json();
-    // The response is in data.candidates[0].content.parts[0].text
-    const reply = data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
-    return reply;
+    // Scroll to bottom
+    chatHistory.scrollTop = chatHistory.scrollHeight;
   }
-  throw new Error("Unknown service");
-}
 
-// --- Event Listeners ---
-servicePicker.addEventListener("change", () => {
-  state.service = servicePicker.value;
-  saveLastService(state.service);
-  renderServicePicker();
-  renderApiKeyForm();
-  state.conversations[state.service] = loadConversations(state.service);
-  state.selectedConvoId[state.service] = loadSelectedConvo(state.service) || (state.conversations[state.service][0]?.id || null);
-  renderConvoList();
-  renderChat();
-});
-
-apiKeyForm.addEventListener("submit", e => {
-  e.preventDefault();
-  const key = apiKeyInput.value.trim();
-  if (!key) return;
-  saveApiKey(state.service, key);
-  renderApiKeyForm();
-  alert("API key saved for " + SERVICES[state.service].label);
-});
-
-newConvoBtn.addEventListener("click", () => {
-  createNewConversation(state.service);
-});
-
-chatInputForm.addEventListener("submit", async e => {
-  e.preventDefault();
-  if (state.loading) return;
-  const text = chatInput.value.trim();
-  if (!text) return;
-  const service = state.service;
-  const apiKey = state.apiKeys[service];
-  if (!apiKey) {
-    alert(`Please enter your ${SERVICES[service].label} API key first.`);
-    return;
+  // Create new conversation for active API
+  function createNewConversation() {
+    const id = generateId();
+    conversations[id] = {
+      id,
+      api: activeApi,
+      messages: [],
+      createdAt: new Date().toISOString(),
+    };
+    activeConversationId = id;
+    saveState();
+    renderConversationList();
+    renderChatHistory();
   }
-  let conversations = state.conversations[service];
-  let selectedId = state.selectedConvoId[service];
-  if (!selectedId) {
-    createNewConversation(service);
-    conversations = state.conversations[service];
-    selectedId = state.selectedConvoId[service];
-  }
-  addMessageToConversation(service, selectedId, "user", text);
-  chatInput.value = "";
-  state.loading = true;
-  renderChat();
-  try {
-    const convo = conversations.find(c => c.id === selectedId);
-    // Compose messages for API
-    const apiMessages = convo.messages.map(m => ({
-      role: m.role,
-      content: m.content
-    }));
-    const reply = await sendMessageToAPI(service, apiKey, apiMessages);
-    addMessageToConversation(service, selectedId, "assistant", reply);
-  } catch (err) {
-    addMessageToConversation(service, selectedId, "assistant", `[Error]: ${err.message}`);
-  }
-  state.loading = false;
-  renderChat();
-});
 
-// --- Initialization ---
-function init() {
-  // Load all conversations and selected convo IDs
-  for (const svc in SERVICES) {
-    state.conversations[svc] = loadConversations(svc);
-    state.selectedConvoId[svc] = loadSelectedConvo(svc) || (state.conversations[svc][0]?.id || null);
+  // Send message to selected API and get response
+  async function sendMessageToApi(message) {
+    if (!apiKeys[activeApi]) {
+      alert('Please save your API key for the selected service first.');
+      return null;
+    }
+    if (activeApi === APIS.TOGETHER) {
+      return await sendToTogetherApi(message, apiKeys[activeApi]);
+    } else if (activeApi === APIS.GEMINI) {
+      return await sendToGeminiApi(message, apiKeys[activeApi]);
+    }
+    return null;
   }
-  renderServicePicker();
-  renderApiKeyForm();
-  renderConvoList();
-  renderChat();
-}
 
-init();
+  // Together.ai API call (Gemma-2 Instruct)
+  async function sendToTogetherApi(message, apiKey) {
+    try {
+      const body = {
+        model: TOGETHER_MODEL,
+        messages: [{ role: 'user', content: message }],
+      };
+      const res = await fetch('https://api.together.xyz/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Together.ai API error: ${res.status} ${errText}`);
+      }
+      const data = await res.json();
+      // The response content is in data.choices[0].message.content
+      return data.choices?.[0]?.message?.content || '[No response]';
+    } catch (e) {
+      console.error(e);
+      alert('Error communicating with Together.ai API: ' + e.message);
+      return null;
+    }
+  }
+
+  // Gemini API call using Google Generative Language REST API
+  async function sendToGeminiApi(message, apiKey) {
+    try {
+      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
+      const body = {
+        prompt: {
+          text: message,
+        },
+      };
+      // According to docs, the request body uses "contents" array or "prompt.text"
+      // Using "prompt.text" here as per quickstart examples
+      const res = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          prompt: {
+            text: message,
+          },
+        }),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Gemini API error: ${res.status} ${errText}`);
+      }
+      const data = await res.json();
+      // The response text is in data.candidates[0].output or data.result?.content
+      // Based on latest docs, response text is in data.candidates[0].output
+      if (data.candidates && data.candidates.length > 0) {
+        return data.candidates[0].output || '[No response]';
+      }
+      // Fallback
+      return '[No response]';
+    } catch (e) {
+      console.error(e);
+      alert('Error communicating with Gemini API: ' + e.message);
+      return null;
+    }
+  }
+
+  // Event handlers
+
+  // On API selection change
+  apiSelect.addEventListener('change', () => {
+    activeApi = apiSelect.value;
+    localStorage.setItem(STORAGE_KEYS.activeApi, activeApi);
+    updateApiKeyInput();
+    renderConversationList();
+  });
+
+  // On Save API key button click
+  saveApiKeyBtn.addEventListener('click', () => {
+    const key = apiKeyInput.value.trim();
+    if (!key) {
+      alert('API key cannot be empty.');
+      return;
+    }
+    apiKeys[activeApi] = key;
+    saveState();
+    alert(`API key saved for ${activeApi === APIS.TOGETHER ? 'Together.ai' : 'Gemini'}.`);
+  });
+
+  // On New conversation button click
+  newConversationBtn.addEventListener('click', () => {
+    createNewConversation();
+  });
+
+  // On conversation select change
+  conversationSelect.addEventListener('change', () => {
+    const selectedId = conversationSelect.value;
+    if (conversations[selectedId]) {
+      activeConversationId = selectedId;
+      saveState();
+      renderChatHistory();
+    }
+  });
+
+  // On chat form submit (send message)
+  chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+
+    if (!activeConversationId) {
+      alert('Please create a new conversation first.');
+      return;
+    }
+
+    // Append user message
+    conversations[activeConversationId].messages.push({ role: 'user', content: message });
+    renderChatHistory();
+    chatInput.value = '';
+    chatInput.disabled = true;
+    saveState();
+
+    // Call API for response
+    const response = await sendMessageToApi(message);
+    if (response !== null) {
+      conversations[activeConversationId].messages.push({ role: 'assistant', content: response });
+      renderChatHistory();
+      saveState();
+    }
+    chatInput.disabled = false;
+    chatInput.focus();
+  });
+
+  // Initialization
+  function init() {
+    loadState();
+    // Set API selector and input
+    apiSelect.value = activeApi;
+    updateApiKeyInput();
+    renderConversationList();
+    // If no conversation for active API, create one
+    if (!activeConversationId) {
+      createNewConversation();
+    }
+  }
+
+  init();
+})();
 </script>
 </body>
 </html>
