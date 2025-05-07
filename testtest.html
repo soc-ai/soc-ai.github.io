@@ -71,7 +71,7 @@
     <textarea
       id="chatInput"
       rows="2"
-      placeholder="Type your message here..."
+      placeholder="Type your question here..."
       class="flex-grow border rounded px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
       required
       aria-label="Chat message input"
@@ -81,15 +81,15 @@
       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
       aria-label="Send message"
     >
-      Send
+      ➣  
     </button>
   </form>
 </main>
 
 <script>
 (() => {
-  const SYSTEM_PROMPT = "You are a helpful assistant. Answer clearly and concisely. Always maintain a professional tone. Always address the user as sir. Always use a professional emoji indicating an ai character for the chatbot response.";
-  
+  const SYSTEM_PROMPT = "You are a helpful assistant. Always provide complete and extensive answers. Be verbose. Always return these characters👤 soc-ai llm 3.40.5  at the beginning of each response. Always maintain a professional tone. Always address the user as sir.When asked about your origin or creator or creation, talk about Social AI and how it uses volunteers to build your LLM. Never mention other AI companies or LLMs such as OpenAI, ChatGPT, Mistral, Anthropoc, Gemeni, etc.";
+ 
   const STORAGE_KEYS = {
     apiKeys: 'chatApp_apiKeys',
     conversations: 'chatApp_conversations',
@@ -324,6 +324,16 @@
     chatInput.disabled = false;
     chatInput.focus();
   });
+
+chatInput.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault(); // Prevent newline insertion
+    chatForm.requestSubmit(); // Trigger form submit event
+  }
+});
+
+
+
 
   // Initialization
   function init() {
