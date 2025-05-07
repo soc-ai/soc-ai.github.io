@@ -1,13 +1,12 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Social AI Chat</title>
-<!-- Tailwind CSS CDN for styling -->
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
-  /* Custom scrollbar for chat history */
   #chatHistory {
     scrollbar-width: thin;
     scrollbar-color: #a0aec0 transparent;
@@ -23,12 +22,11 @@
 </head>
 <body class="bg-gray-100 h-screen flex flex-col">
 
-<!-- Top bar: API picker and API key input -->
 <header class="flex items-center gap-4 bg-white p-4 shadow sticky top-0 z-10">
   <label for="apiSelect" class="font-semibold text-gray-700">Select API:</label>
   <select id="apiSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
     <option value="together">Social AI</option>
-    <option value="gemini">Not Set</option>
+    <option value="gemini">—————</option>
   </select>
 
   <label for="apiKeyInput" class="ml-4 font-semibold text-gray-700">API Key:</label>
@@ -46,9 +44,7 @@
   </button>
 </header>
 
-<!-- Main chat area -->
 <main class="flex flex-col flex-grow max-w-3xl mx-auto w-full p-4">
-  <!-- Conversation selector and New conversation button -->
   <div class="flex justify-between items-center mb-2">
     <div>
       <label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label>
@@ -63,17 +59,14 @@
     </button>
   </div>
 
-  <!-- Chat history -->
   <div
     id="chatHistory"
     class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh]"
     aria-live="polite"
     aria-atomic="false"
   >
-    <!-- Messages will be appended here -->
   </div>
 
-  <!-- Chat input form -->
   <form id="chatForm" class="flex gap-2">
     <textarea
       id="chatInput"
@@ -95,7 +88,8 @@
 
 <script>
 (() => {
-  // Constants for localStorage keys
+  const SYSTEM_PROMPT = "You are a helpful assistant. Answer clearly and concisely. Always maintain a professional tone. Always address the user as sir. Always use a professional emoji indicating an ai character for the chatbot response.";
+  
   const STORAGE_KEYS = {
     apiKeys: 'chatApp_apiKeys',
     conversations: 'chatApp_conversations',
@@ -103,17 +97,14 @@
     activeApi: 'chatApp_activeApi',
   };
 
-  // Supported APIs enum
   const APIS = {
     TOGETHER: 'together',
     GEMINI: 'gemini',
   };
 
-  // Models for Together.ai and Gemini (fixed for demo)
   const TOGETHER_MODEL = 'google/gemma-2-27b-it';
   const GEMINI_MODEL = 'gemini-2.0-flash';
 
-  // DOM elements
   const apiSelect = document.getElementById('apiSelect');
   const apiKeyInput = document.getElementById('apiKeyInput');
   const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
@@ -123,37 +114,27 @@
   const newConversationBtn = document.getElementById('newConversationBtn');
   const conversationSelect = document.getElementById('conversationSelect');
 
-  // In-memory state
-  let apiKeys = {}; // { together: key, gemini: key }
-  let conversations = {}; // { conversationId: { id, api, messages: [{role, content}], createdAt } }
+  let apiKeys = {};
+  let conversations = {};
   let activeConversationId = null;
   let activeApi = APIS.TOGETHER;
 
-  // Load from localStorage
   function loadState() {
     const storedApiKeys = localStorage.getItem(STORAGE_KEYS.apiKeys);
-    if (storedApiKeys) {
-      try {
-        apiKeys = JSON.parse(storedApiKeys);
-      } catch {}
-    }
+    if (storedApiKeys) apiKeys = JSON.parse(storedApiKeys) || {};
+    
     const storedConversations = localStorage.getItem(STORAGE_KEYS.conversations);
-    if (storedConversations) {
-      try {
-        conversations = JSON.parse(storedConversations);
-      } catch {}
-    }
+    if (storedConversations) conversations = JSON.parse(storedConversations) || {};
+    
     const storedActiveConv = localStorage.getItem(STORAGE_KEYS.activeConversationId);
     if (storedActiveConv && conversations[storedActiveConv]) {
       activeConversationId = storedActiveConv;
     }
+    
     const storedActiveApi = localStorage.getItem(STORAGE_KEYS.activeApi);
-    if (storedActiveApi && Object.values(APIS).includes(storedActiveApi)) {
-      activeApi = storedActiveApi;
-    }
+    if (storedActiveApi) activeApi = storedActiveApi;
   }
 
-  // Save to localStorage
   function saveState() {
     localStorage.setItem(STORAGE_KEYS.apiKeys, JSON.stringify(apiKeys));
     localStorage.setItem(STORAGE_KEYS.conversations, JSON.stringify(conversations));
@@ -163,78 +144,76 @@
     localStorage.setItem(STORAGE_KEYS.activeApi, activeApi);
   }
 
-  // Generate a simple unique ID for conversations
   function generateId() {
     return 'conv_' + Math.random().toString(36).substring(2, 10);
   }
 
-  // Update API key input field based on selected API
   function updateApiKeyInput() {
     apiKeyInput.value = apiKeys[activeApi] || '';
   }
 
-  // Render conversation selector options
   function renderConversationList() {
-    // Filter conversations for active API
     const convs = Object.values(conversations).filter(c => c.api === activeApi);
     conversationSelect.innerHTML = '';
+    
     if (convs.length === 0) {
       const opt = document.createElement('option');
-      opt.value = '';
       opt.textContent = '(No conversations)';
       opt.disabled = true;
       conversationSelect.appendChild(opt);
       activeConversationId = null;
-      saveState();
       renderChatHistory();
       return;
     }
+
     convs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
     convs.forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.id;
-      opt.textContent = `Conversation ${c.id.substring(5, 13)}`;
+      opt.textContent = `Prior Conversation ${c.id.substring(12, 13)}`;
       conversationSelect.appendChild(opt);
     });
-    // If current activeConversationId is not in filtered list, reset to first
+
     if (!convs.find(c => c.id === activeConversationId)) {
-      activeConversationId = convs[0].id;
-      saveState();
+      activeConversationId = convs[0]?.id;
     }
     conversationSelect.value = activeConversationId;
     renderChatHistory();
   }
 
-  // Render chat messages in chatHistory container
   function renderChatHistory() {
     chatHistory.innerHTML = '';
     if (!activeConversationId || !conversations[activeConversationId]) {
       chatHistory.innerHTML = '<p class="text-gray-500 italic">No conversation selected.</p>';
       return;
     }
+    
     const msgs = conversations[activeConversationId].messages;
     msgs.forEach(msg => {
+      if (msg.role === 'system') return;
+      
       const div = document.createElement('div');
       div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
+      
       const bubble = document.createElement('div');
-      bubble.className = msg.role === 'user'
+      bubble.className = msg.role === 'user' 
         ? 'inline-block bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
         : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
+      
       bubble.textContent = msg.content;
       div.appendChild(bubble);
       chatHistory.appendChild(div);
     });
-    // Scroll to bottom
+    
     chatHistory.scrollTop = chatHistory.scrollHeight;
   }
 
-  // Create new conversation for active API
   function createNewConversation() {
     const id = generateId();
     conversations[id] = {
       id,
       api: activeApi,
-      messages: [],
+      messages: [{ role: 'system', content: SYSTEM_PROMPT }],
       createdAt: new Date().toISOString(),
     };
     activeConversationId = id;
@@ -243,93 +222,74 @@
     renderChatHistory();
   }
 
-  // Send message to selected API and get response
   async function sendMessageToApi(message) {
     if (!apiKeys[activeApi]) {
-      alert('Please save your API key for the selected service first.');
+      alert('Please save your API key first.');
       return null;
     }
-    if (activeApi === APIS.TOGETHER) {
-      return await sendToTogetherApi(message, apiKeys[activeApi]);
-    } else if (activeApi === APIS.GEMINI) {
-      return await sendToGeminiApi(message, apiKeys[activeApi]);
+
+    const conversation = conversations[activeConversationId];
+    conversation.messages.push({ role: 'user', content: message });
+    saveState();
+    renderChatHistory();
+
+    try {
+      let response;
+      if (activeApi === APIS.TOGETHER) {
+        response = await sendToTogetherApi(conversation.messages, apiKeys[activeApi]);
+      } else {
+        response = await sendToGeminiApi(message, apiKeys[activeApi]);
+      }
+      
+      if (response) {
+        conversation.messages.push({ role: 'assistant', content: response });
+        saveState();
+        renderChatHistory();
+      }
+      return response;
+    } catch (e) {
+      console.error(e);
+      alert(`API Error: ${e.message}`);
+      return null;
     }
-    return null;
   }
 
-  // Together.ai API call (Gemma-2 Instruct)
-  async function sendToTogetherApi(message, apiKey) {
-    try {
-      const body = {
+  async function sendToTogetherApi(messages, apiKey) {
+    const res = await fetch('https://api.together.xyz/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
         model: TOGETHER_MODEL,
-        messages: [{ role: 'user', content: message }],
-      };
-      const res = await fetch('https://api.together.xyz/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Authorization': `Bearer ${apiKey}`,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(body),
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Together.ai API error: ${res.status} ${errText}`);
-      }
-      const data = await res.json();
-      // The response content is in data.choices[0].message.content
-      return data.choices?.[0]?.message?.content || '[No response]';
-    } catch (e) {
-      console.error(e);
-      alert('Error communicating with Together.ai API: ' + e.message);
-      return null;
-    }
+        messages: messages.filter(m => m.role !== 'assistant'),
+        max_tokens: 512
+      })
+    });
+
+    if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    const data = await res.json();
+    return data.choices?.[0]?.message?.content || '[No response]';
   }
 
-  // Gemini API call using Google Generative Language REST API
   async function sendToGeminiApi(message, apiKey) {
-    try {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${encodeURIComponent(apiKey)}`;
-      const body = {
-        prompt: {
-          text: message,
-        },
-      };
-      // According to docs, the request body uses "contents" array or "prompt.text"
-      // Using "prompt.text" here as per quickstart examples
-      const res = await fetch(url, {
+    const fullPrompt = `${SYSTEM_PROMPT}\n\nUser: ${message}`;
+    const res = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+      {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          prompt: {
-            text: message,
-          },
-        }),
-      });
-      if (!res.ok) {
-        const errText = await res.text();
-        throw new Error(`Gemini API error: ${res.status} ${errText}`);
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
       }
-      const data = await res.json();
-      // The response text is in data.candidates[0].output or data.result?.content
-      // Based on latest docs, response text is in data.candidates[0].output
-      if (data.candidates && data.candidates.length > 0) {
-        return data.candidates[0].output || '[No response]';
-      }
-      // Fallback
-      return '[No response]';
-    } catch (e) {
-      console.error(e);
-      alert('Error communicating with Gemini API: ' + e.message);
-      return null;
-    }
+    );
+
+    if (!res.ok) throw new Error(`API Error: ${res.status}`);
+    const data = await res.json();
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || '[No response]';
   }
 
   // Event handlers
-
-  // On API selection change
   apiSelect.addEventListener('change', () => {
     activeApi = apiSelect.value;
     localStorage.setItem(STORAGE_KEYS.activeApi, activeApi);
@@ -337,58 +297,30 @@
     renderConversationList();
   });
 
-  // On Save API key button click
   saveApiKeyBtn.addEventListener('click', () => {
     const key = apiKeyInput.value.trim();
-    if (!key) {
-      alert('API key cannot be empty.');
-      return;
-    }
+    if (!key) return alert('Please enter an API key');
     apiKeys[activeApi] = key;
     saveState();
-    alert(`API key saved`);
+    alert('Social AI — API key saved!');
   });
 
-  // On New conversation button click
-  newConversationBtn.addEventListener('click', () => {
-    createNewConversation();
-  });
+  newConversationBtn.addEventListener('click', createNewConversation);
 
-  // On conversation select change
   conversationSelect.addEventListener('change', () => {
-    const selectedId = conversationSelect.value;
-    if (conversations[selectedId]) {
-      activeConversationId = selectedId;
-      saveState();
-      renderChatHistory();
-    }
+    activeConversationId = conversationSelect.value;
+    saveState();
+    renderChatHistory();
   });
 
-  // On chat form submit (send message)
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = chatInput.value.trim();
     if (!message) return;
 
-    if (!activeConversationId) {
-      alert('Please create a new conversation first.');
-      return;
-    }
-
-    // Append user message
-    conversations[activeConversationId].messages.push({ role: 'user', content: message });
-    renderChatHistory();
-    chatInput.value = '';
     chatInput.disabled = true;
-    saveState();
-
-    // Call API for response
-    const response = await sendMessageToApi(message);
-    if (response !== null) {
-      conversations[activeConversationId].messages.push({ role: 'assistant', content: response });
-      renderChatHistory();
-      saveState();
-    }
+    await sendMessageToApi(message);
+    chatInput.value = '';
     chatInput.disabled = false;
     chatInput.focus();
   });
@@ -396,11 +328,10 @@
   // Initialization
   function init() {
     loadState();
-    // Set API selector and input
     apiSelect.value = activeApi;
     updateApiKeyInput();
     renderConversationList();
-    // If no conversation for active API, create one
+    
     if (!activeConversationId) {
       createNewConversation();
     }
