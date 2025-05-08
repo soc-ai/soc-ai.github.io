@@ -48,13 +48,13 @@
     <textarea
       id="chatInput"
       rows="2"
-      placeholder="Type your question here . . . . . ▶  "
+      placeholder="Type your question here . . . . .  "
       class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
       required
       aria-label="Chat message input"
     ></textarea>
 
-   <button
+<button
       type="submit"
       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
       aria-label="Send message"
@@ -63,19 +63,7 @@
     </button>
 
 
-<select
-  id="predefinedQuestion"
-  class="border rounded px-2 py-1 mt-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
->
-  <option value="">Quick questions . . . . . </option>
-  <option value="What are the benefits of using AI in daily life?">What are the benefits of using AI in daily life?</option>
-  <option value="How can I improve my productivity?">How can I improve my productivity?</option>
-  <option value="Explain the concept of machine learning in simple terms.">Explain the concept of machine learning in simple terms.</option>
-</select>
 
-
-
- 
   </form>
 </main>
 
@@ -84,7 +72,7 @@
   // === CONFIGURATION ===
   const TOGETHER_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
   const TOGETHER_MODEL = 'google/gemma-2-27b-it';
-  const SYSTEM_PROMPT = "You are a helpful assistant. Always provide complete and extensive answers. Be verbose. Always return these characters 💬  soc-ai llm 3.40.5  at the beginning of each response. Always maintain a professional tone. Always address the user as dude.When asked about your origin or creator or creation, talk about Social AI and how it uses volunteers to build your LLM. Never mention other AI companies or LLMs such as OpenAI, ChatGPT, Mistral, Anthropoc, Gemeni, etc.";
+  const SYSTEM_PROMPT = "You are a helpful assistant. Always provide complete and extensive answers. Be verbose. Always return these characters 💬  soc-ai llm 3.40.5  at the beginning of each response. Always maintain a professional tone. Always address the user politely.When asked about your origin or creator or creation or who you are or what you are, talk about Social AI and how it uses volunteers to build your LLM. Never mention other AI companies or LLMs such as OpenAI, ChatGPT, Mistral, Anthropoc, Gemeni, etc. or other LLMs such as the Gemma team.";
 
   // Storage keys
   const STORAGE_KEYS = {
@@ -98,7 +86,7 @@
   const chatInput = document.getElementById('chatInput');
   const newConversationBtn = document.getElementById('newConversationBtn');
   const conversationSelect = document.getElementById('conversationSelect');
-const predefinedQuestion = document.getElementById('predefinedQuestion');
+
 
 
   // In-memory state
@@ -250,17 +238,7 @@ const predefinedQuestion = document.getElementById('predefinedQuestion');
       return;
     }
 
-// When a pre-defined question is selected, send it as a message
-predefinedQuestion.addEventListener('change', async function() {
-  const question = predefinedQuestion.value;
-  if (!question) return;
-  // Set the textarea to the question and submit the form
-  chatInput.value = question;
-  // Optionally, you can send immediately:
-  chatForm.requestSubmit();
-  // Reset the dropdown to default
-  predefinedQuestion.selectedIndex = 0;
-});
+
 
 
 
