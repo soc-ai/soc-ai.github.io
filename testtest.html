@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,28 +21,7 @@
 </head>
 <body class="bg-gray-100 h-screen flex flex-col">
 
-<header class="flex items-center gap-4 bg-white p-4 shadow sticky top-0 z-10">
-  <label for="apiSelect" class="font-semibold text-gray-700">Select API:</label>
-  <select id="apiSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500">
-    <option value="together">Social AI</option>
-    <option value="gemini">—————</option>
-  </select>
-
-  <label for="apiKeyInput" class="ml-4 font-semibold text-gray-700">API Key:</label>
-  <input
-    id="apiKeyInput"
-    type="password"
-    placeholder="Enter API key"
-    class="border rounded px-2 py-1 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-  />
-  <button
-    id="saveApiKeyBtn"
-    class="ml-2 bg-blue-600 text-white px-4 py-1 rounded hover:bg-blue-700 transition"
-  >
-    Save
-  </button>
-</header>
-
+<!-- Main chat area -->
 <main class="flex flex-col flex-grow max-w-3xl mx-auto w-full p-4">
   <div class="flex justify-between items-center mb-2">
     <div>
@@ -64,118 +42,119 @@
     class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh]"
     aria-live="polite"
     aria-atomic="false"
-  >
-  </div>
+  ></div>
 
   <form id="chatForm" class="flex gap-2">
     <textarea
       id="chatInput"
       rows="2"
-      placeholder="Type your question here..."
-      class="flex-grow border rounded px-3 py-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+      placeholder="Type your question here . . . . . ▶  "
+      class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
       required
       aria-label="Chat message input"
     ></textarea>
-    <button
+
+   <button
       type="submit"
       class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
       aria-label="Send message"
     >
       ➣  
     </button>
+
+
+<select
+  id="predefinedQuestion"
+  class="border rounded px-2 py-1 mt-2 w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
+>
+  <option value="">Quick questions . . . . . </option>
+  <option value="What are the benefits of using AI in daily life?">What are the benefits of using AI in daily life?</option>
+  <option value="How can I improve my productivity?">How can I improve my productivity?</option>
+  <option value="Explain the concept of machine learning in simple terms.">Explain the concept of machine learning in simple terms.</option>
+</select>
+
+
+
+ 
   </form>
 </main>
 
 <script>
 (() => {
-  const SYSTEM_PROMPT = "You are a helpful assistant. Always provide complete and extensive answers. Be verbose. Always return these characters👤 soc-ai llm 3.40.5  at the beginning of each response. Always maintain a professional tone. Always address the user as sir.When asked about your origin or creator or creation, talk about Social AI and how it uses volunteers to build your LLM. Never mention other AI companies or LLMs such as OpenAI, ChatGPT, Mistral, Anthropoc, Gemeni, etc.";
- 
-  const STORAGE_KEYS = {
-    apiKeys: 'chatApp_apiKeys',
-    conversations: 'chatApp_conversations',
-    activeConversationId: 'chatApp_activeConversationId',
-    activeApi: 'chatApp_activeApi',
-  };
-
-  const APIS = {
-    TOGETHER: 'together',
-    GEMINI: 'gemini',
-  };
-
+  // === CONFIGURATION ===
+  const TOGETHER_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
   const TOGETHER_MODEL = 'google/gemma-2-27b-it';
-  const GEMINI_MODEL = 'gemini-2.0-flash';
+  const SYSTEM_PROMPT = "You are a helpful assistant. Always provide complete and extensive answers. Be verbose. Always return these characters 💬  soc-ai llm 3.40.5  at the beginning of each response. Always maintain a professional tone. Always address the user as dude.When asked about your origin or creator or creation, talk about Social AI and how it uses volunteers to build your LLM. Never mention other AI companies or LLMs such as OpenAI, ChatGPT, Mistral, Anthropoc, Gemeni, etc.";
 
-  const apiSelect = document.getElementById('apiSelect');
-  const apiKeyInput = document.getElementById('apiKeyInput');
-  const saveApiKeyBtn = document.getElementById('saveApiKeyBtn');
+  // Storage keys
+  const STORAGE_KEYS = {
+    conversations: 'chatApp_conversations',
+    activeConversationId: 'chatApp_activeConversationId'
+  };
+
+  // DOM elements
   const chatHistory = document.getElementById('chatHistory');
   const chatForm = document.getElementById('chatForm');
   const chatInput = document.getElementById('chatInput');
   const newConversationBtn = document.getElementById('newConversationBtn');
   const conversationSelect = document.getElementById('conversationSelect');
+const predefinedQuestion = document.getElementById('predefinedQuestion');
 
-  let apiKeys = {};
+
+  // In-memory state
   let conversations = {};
   let activeConversationId = null;
-  let activeApi = APIS.TOGETHER;
 
+  // --- Storage functions ---
   function loadState() {
-    const storedApiKeys = localStorage.getItem(STORAGE_KEYS.apiKeys);
-    if (storedApiKeys) apiKeys = JSON.parse(storedApiKeys) || {};
-    
     const storedConversations = localStorage.getItem(STORAGE_KEYS.conversations);
-    if (storedConversations) conversations = JSON.parse(storedConversations) || {};
-    
+    if (storedConversations) {
+      try {
+        conversations = JSON.parse(storedConversations);
+      } catch {}
+    }
     const storedActiveConv = localStorage.getItem(STORAGE_KEYS.activeConversationId);
     if (storedActiveConv && conversations[storedActiveConv]) {
       activeConversationId = storedActiveConv;
     }
-    
-    const storedActiveApi = localStorage.getItem(STORAGE_KEYS.activeApi);
-    if (storedActiveApi) activeApi = storedActiveApi;
   }
 
   function saveState() {
-    localStorage.setItem(STORAGE_KEYS.apiKeys, JSON.stringify(apiKeys));
     localStorage.setItem(STORAGE_KEYS.conversations, JSON.stringify(conversations));
     if (activeConversationId) {
       localStorage.setItem(STORAGE_KEYS.activeConversationId, activeConversationId);
     }
-    localStorage.setItem(STORAGE_KEYS.activeApi, activeApi);
   }
 
   function generateId() {
     return 'conv_' + Math.random().toString(36).substring(2, 10);
   }
 
-  function updateApiKeyInput() {
-    apiKeyInput.value = apiKeys[activeApi] || '';
-  }
-
+  // --- UI rendering ---
   function renderConversationList() {
-    const convs = Object.values(conversations).filter(c => c.api === activeApi);
+    const convs = Object.values(conversations);
     conversationSelect.innerHTML = '';
-    
     if (convs.length === 0) {
       const opt = document.createElement('option');
+      opt.value = '';
       opt.textContent = '(No conversations)';
       opt.disabled = true;
       conversationSelect.appendChild(opt);
       activeConversationId = null;
+      saveState();
       renderChatHistory();
       return;
     }
-
     convs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
     convs.forEach(c => {
       const opt = document.createElement('option');
       opt.value = c.id;
-      opt.textContent = `Prior Conversation ${c.id.substring(12, 13)}`;
+      opt.textContent = `Conversation ${c.id.substring(12, 13)}`;
       conversationSelect.appendChild(opt);
     });
-
     if (!convs.find(c => c.id === activeConversationId)) {
-      activeConversationId = convs[0]?.id;
+      activeConversationId = convs[0].id;
+      saveState();
     }
     conversationSelect.value = activeConversationId;
     renderChatHistory();
@@ -187,32 +166,27 @@
       chatHistory.innerHTML = '<p class="text-gray-500 italic">No conversation selected.</p>';
       return;
     }
-    
     const msgs = conversations[activeConversationId].messages;
     msgs.forEach(msg => {
       if (msg.role === 'system') return;
-      
       const div = document.createElement('div');
       div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
-      
       const bubble = document.createElement('div');
-      bubble.className = msg.role === 'user' 
+      bubble.className = msg.role === 'user'
         ? 'inline-block bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
         : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
-      
       bubble.textContent = msg.content;
       div.appendChild(bubble);
       chatHistory.appendChild(div);
     });
-    
     chatHistory.scrollTop = chatHistory.scrollHeight;
   }
 
+  // --- Conversation logic ---
   function createNewConversation() {
     const id = generateId();
     conversations[id] = {
       id,
-      api: activeApi,
       messages: [{ role: 'system', content: SYSTEM_PROMPT }],
       createdAt: new Date().toISOString(),
     };
@@ -222,126 +196,104 @@
     renderChatHistory();
   }
 
-  async function sendMessageToApi(message) {
-    if (!apiKeys[activeApi]) {
-      alert('Please save your API key first.');
-      return null;
-    }
-
-    const conversation = conversations[activeConversationId];
-    conversation.messages.push({ role: 'user', content: message });
-    saveState();
-    renderChatHistory();
-
+  async function sendToTogetherApi(messages) {
     try {
-      let response;
-      if (activeApi === APIS.TOGETHER) {
-        response = await sendToTogetherApi(conversation.messages, apiKeys[activeApi]);
-      } else {
-        response = await sendToGeminiApi(message, apiKeys[activeApi]);
+      // Always send system prompt as the first message
+      const filtered = messages.filter(m => m.role !== 'system');
+      const body = {
+        model: TOGETHER_MODEL,
+        messages: [
+          { role: 'system', content: SYSTEM_PROMPT },
+          ...filtered
+        ],
+        max_tokens: 512
+      };
+      const res = await fetch('https://api.together.xyz/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${TOGETHER_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Together.ai API error: ${res.status} ${errText}`);
       }
-      
-      if (response) {
-        conversation.messages.push({ role: 'assistant', content: response });
-        saveState();
-        renderChatHistory();
-      }
-      return response;
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || '[No response]';
     } catch (e) {
       console.error(e);
-      alert(`API Error: ${e.message}`);
+      alert('Error communicating with Together.ai API: ' + e.message);
       return null;
     }
   }
 
-  async function sendToTogetherApi(messages, apiKey) {
-    const res = await fetch('https://api.together.xyz/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: TOGETHER_MODEL,
-        messages: messages.filter(m => m.role !== 'assistant'),
-        max_tokens: 512
-      })
-    });
-
-    if (!res.ok) throw new Error(`API Error: ${res.status}`);
-    const data = await res.json();
-    return data.choices?.[0]?.message?.content || '[No response]';
-  }
-
-  async function sendToGeminiApi(message, apiKey) {
-    const fullPrompt = `${SYSTEM_PROMPT}\n\nUser: ${message}`;
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ contents: [{ parts: [{ text: fullPrompt }] }] })
-      }
-    );
-
-    if (!res.ok) throw new Error(`API Error: ${res.status}`);
-    const data = await res.json();
-    return data.candidates?.[0]?.content?.parts?.[0]?.text || '[No response]';
-  }
-
-  // Event handlers
-  apiSelect.addEventListener('change', () => {
-    activeApi = apiSelect.value;
-    localStorage.setItem(STORAGE_KEYS.activeApi, activeApi);
-    updateApiKeyInput();
-    renderConversationList();
-  });
-
-  saveApiKeyBtn.addEventListener('click', () => {
-    const key = apiKeyInput.value.trim();
-    if (!key) return alert('Please enter an API key');
-    apiKeys[activeApi] = key;
-    saveState();
-    alert('Social AI — API key saved!');
-  });
-
+  // --- Event handlers ---
   newConversationBtn.addEventListener('click', createNewConversation);
 
   conversationSelect.addEventListener('change', () => {
-    activeConversationId = conversationSelect.value;
-    saveState();
-    renderChatHistory();
+    const selectedId = conversationSelect.value;
+    if (conversations[selectedId]) {
+      activeConversationId = selectedId;
+      saveState();
+      renderChatHistory();
+    }
   });
 
   chatForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const message = chatInput.value.trim();
     if (!message) return;
+    if (!activeConversationId) {
+      alert('Please create a new conversation first.');
+      return;
+    }
 
-    chatInput.disabled = true;
-    await sendMessageToApi(message);
-    chatInput.value = '';
-    chatInput.disabled = false;
-    chatInput.focus();
-  });
-
-chatInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter' && !e.shiftKey) {
-    e.preventDefault(); // Prevent newline insertion
-    chatForm.requestSubmit(); // Trigger form submit event
-  }
+// When a pre-defined question is selected, send it as a message
+predefinedQuestion.addEventListener('change', async function() {
+  const question = predefinedQuestion.value;
+  if (!question) return;
+  // Set the textarea to the question and submit the form
+  chatInput.value = question;
+  // Optionally, you can send immediately:
+  chatForm.requestSubmit();
+  // Reset the dropdown to default
+  predefinedQuestion.selectedIndex = 0;
 });
 
 
 
+    // Append user message
+    conversations[activeConversationId].messages.push({ role: 'user', content: message });
+    renderChatHistory();
+    chatInput.value = '';
+    chatInput.disabled = true;
+    saveState();
 
-  // Initialization
+    // Get assistant response
+    const response = await sendToTogetherApi(conversations[activeConversationId].messages);
+    if (response !== null) {
+      conversations[activeConversationId].messages.push({ role: 'assistant', content: response });
+      renderChatHistory();
+      saveState();
+    }
+    chatInput.disabled = false;
+    chatInput.focus();
+  });
+
+  // Allow Enter to send (without Shift)
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.requestSubmit();
+    }
+  });
+
+  // --- Initialization ---
   function init() {
     loadState();
-    apiSelect.value = activeApi;
-    updateApiKeyInput();
     renderConversationList();
-    
     if (!activeConversationId) {
       createNewConversation();
     }
