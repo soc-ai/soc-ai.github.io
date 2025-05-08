@@ -23,19 +23,19 @@
 
 <!-- Main chat area -->
 <main class="flex flex-col flex-grow max-w-3xl mx-auto w-full p-4">
-  <div class="flex justify-between items-center mb-2">
-    <div>
-      <label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label>
-      <select id="conversationSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
-    </div>
-    <button
-      id="newConversationBtn"
-      class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition"
-      title="Start a new conversation"
-    >
-      New conversation
-    </button>
+
+ <div class="flex justify-between items-center mb-2">
+  <div>
+    <!-- Insert your image here where the dropdown was -->
+    <img src="logo1.png" alt="Social AI" class="h-8 w-auto" />
   </div>
+  <div class="flex items-center gap-2">
+    <label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label>
+    <select id="conversationSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+    <button id="newConversationBtn" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition" title="Start a new conversation">New conversation</button>
+  </div>
+</div>
+
 
   <div
     id="chatHistory"
