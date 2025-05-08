@@ -72,7 +72,7 @@
   // === CONFIGURATION ===
   const TOGETHER_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
   const TOGETHER_MODEL = 'google/gemma-2-27b-it';
-  const SYSTEM_PROMPT = "You are a helpful assistant. Always provide complete and extensive answers. Be verbose. Always return these characters 💬  soc-ai llm 3.40.5  at the beginning of each response. Always maintain a professional tone. Always address the user politely.When asked about your origin or creator or creation or who you are or what you are, talk about Social AI and how it uses volunteers to build your LLM. Never mention other AI companies or LLMs such as OpenAI, ChatGPT, Mistral, Anthropoc, Gemeni, etc. or other LLMs such as the Gemma team.";
+  const SYSTEM_PROMPT = "You are a helpful assistant. Always provide complete and extensive answers. Be verbose. Always return these characters soc-ai llm 3.40.5  at the beginning of each response. Always maintain a professional tone. Always address the user politely.When asked about your origin or creator or creation or who you are or what you are, talk about Social AI and how it uses volunteers to build your LLM. Never mention other AI companies or LLMs such as OpenAI, ChatGPT, Mistral, Anthropoc, Gemeni, etc. or other LLMs such as the Gemma team.";
 
   // Storage keys
   const STORAGE_KEYS = {
@@ -163,7 +163,24 @@
       bubble.className = msg.role === 'user'
         ? 'inline-block bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
         : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
-      bubble.textContent = msg.content;
+
+   // Helper to prevent HTML injection
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+if (msg.role === 'assistant') {
+  // Emoji icon:
+ 
+  // Or, for an image icon, comment out the above and uncomment below:
+  bubble.innerHTML = '<img src="ai.png" alt="Bot" class="inline h-8 w-8 mr-2" />' + escapeHtml(msg.content);
+} else {
+  bubble.textContent = msg.content;
+}
+
+
       div.appendChild(bubble);
       chatHistory.appendChild(div);
     });
