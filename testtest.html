@@ -39,7 +39,8 @@
 
   <div
     id="chatHistory"
-    class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh]"
+   class="flex-grow bg-white rounded-lg border-2 border-black shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh]"
+bg-[url('images.png')] bg-cover bg-center"
     aria-live="polite"
     aria-atomic="false"
   ></div>
@@ -49,14 +50,14 @@
       id="chatInput"
       rows="2"
       placeholder="Type your question here . . . . .  "
-      class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+      class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black"
       required
       aria-label="Chat message input"
     ></textarea>
 
 <button
       type="submit"
-      class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition"
+      class="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition"
       aria-label="Send message"
     >
       ➣  
@@ -161,7 +162,7 @@
       div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
       const bubble = document.createElement('div');
       bubble.className = msg.role === 'user'
-        ? 'inline-block bg-blue-600 text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
+        ? 'inline-block bg-black text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
         : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
 
    // Helper to prevent HTML injection
