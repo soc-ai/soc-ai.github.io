@@ -37,19 +37,21 @@
 </div>
 
 
-  <div
-    id="chatHistory"
-   class="flex-grow bg-white rounded-lg border-2 border-black shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh]"
-bg-[url('images.png')] bg-cover bg-center"
-    aria-live="polite"
-    aria-atomic="false"
-  ></div>
+ <div
+  id="chatHistory"
+  class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh] 
+         bg-[url('image.png')] bg-cover bg-center"
+  aria-live="polite"
+  aria-atomic="false"
+>
+  <!-- Messages will be appended here -->
+</div>
 
   <form id="chatForm" class="flex gap-2">
     <textarea
       id="chatInput"
       rows="2"
-      placeholder="Type your question here . . . . .  "
+      placeholder="Ask Social AI about anything . . . . .  "
       class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black"
       required
       aria-label="Chat message input"
