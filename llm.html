@@ -1,3 +1,372 @@
-<!DOCTYPE html><html lang="en"><head> <meta charset="UTF-8"/> <meta name="viewport" content="width=device-width, initial-scale=1"/> <title>Social AI Chat</title><script src="https://cdn.tailwindcss.com"></script><style>#chatHistory{scrollbar-width:thin;scrollbar-color:#a0aec0 transparent;}#chatHistory::-webkit-scrollbar{width:8px;}#chatHistory::-webkit-scrollbar-thumb{background-color:#a0aec0;border-radius:4px;}</style></head><body class="bg-gray-100 h-screen flex flex-col"> <main class="flex flex-col flex-grow max-w-3xl mx-auto w-full p-4"><div class="flex justify-between items-center mb-2"><div> <img src="logo1.png" alt="Social AI" class="h-8 w-auto"/> </div><div class="flex items-center gap-2"><label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label><select id="conversationSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></select><button id="newConversationBtn" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition" title="Start a new conversation">New conversation</button></div></div><div id="chatHistory" class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh]
-         bg-[url('image.png')] bg-cover bg-center" aria-live="polite" aria-atomic="false"> </div><form id="chatForm" class="flex gap-2"><textarea id="chatInput" rows="2" placeholder="Ask Social AI about anything . . . . .
-[soc-ai llm 3.40.5]" class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black" required="required" aria-label="Chat message input"></textarea><button type="submit" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition" aria-label="Send message"> ➣ </button></form></main><script>(()=>{const SOCIALAI_API_KEY="tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ";const TOGETHER_MODEL='google/gemma-2-27b-it';const SYSTEM_PROMPT="WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0u";const STORAGE_KEYS={conversations:'chatApp_conversations',activeConversationId:'chatApp_activeConversationId'};const chatHistory=document.getElementById('chatHistory');const chatForm=document.getElementById('chatForm');const chatInput=document.getElementById('chatInput');const newConversationBtn=document.getElementById('newConversationBtn');const conversationSelect=document.getElementById('conversationSelect');let conversations={};let activeConversationId=null;function loadState(){const storedConversations=localStorage.getItem(STORAGE_KEYS.conversations);if(storedConversations){try{conversations=JSON.parse(storedConversations)}catch{}}const storedActiveConv=localStorage.getItem(STORAGE_KEYS.activeConversationId);if(storedActiveConv&&conversations[storedActiveConv]){activeConversationId=storedActiveConv}}function saveState(){localStorage.setItem(STORAGE_KEYS.conversations,JSON.stringify(conversations));if(activeConversationId){localStorage.setItem(STORAGE_KEYS.activeConversationId,activeConversationId)}}function generateId(){return'conv_'+Math.random().toString(36).substring(2,10)}function renderConversationList(){const convs=Object.values(conversations);conversationSelect.innerHTML='';if(convs.length===0){const opt=document.createElement('option');opt.value='';opt.textContent='(No conversations)';opt.disabled=true;conversationSelect.appendChild(opt);activeConversationId=null;saveState();renderChatHistory();return}convs.sort((a,b)=>new Date(b.createdAt)-new Date(a.createdAt));convs.forEach(c=>{const opt=document.createElement('option');opt.value=c.id;opt.textContent=`Conversation ${c.id.substring(12,13)}`;conversationSelect.appendChild(opt)});if(!convs.find(c=>c.id===activeConversationId)){activeConversationId=convs[0].id;saveState()}conversationSelect.value=activeConversationId;renderChatHistory()}function renderChatHistory(){chatHistory.innerHTML='';if(!activeConversationId||!conversations[activeConversationId]){chatHistory.innerHTML='<p class="text-gray-500 italic">No conversation selected.</p>';return}const msgs=conversations[activeConversationId].messages;msgs.forEach(msg=>{if(msg.role==='system')return;const div=document.createElement('div');div.className=msg.role==='user'?'text-right mb-3':'text-left mb-3';const bubble=document.createElement('div');bubble.className=msg.role==='user'?'inline-block bg-black text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap':'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';function escapeHtml(text){const div=document.createElement('div');div.textContent=text;return div.innerHTML}if(msg.role==='assistant'){bubble.innerHTML='<img src="ai.png" alt="Bot" class="inline h-8 w-8 mr-2" />'+escapeHtml(msg.content)}else{bubble.textContent=msg.content}div.appendChild(bubble);chatHistory.appendChild(div)});chatHistory.scrollTop=chatHistory.scrollHeight}function createNewConversation(){const id=generateId();conversations[id]={id,messages:[{role:'system',content:SYSTEM_PROMPT}],createdAt:new Date().toISOString()};activeConversationId=id;saveState();renderConversationList();renderChatHistory()}async function sendToTogetherApi(messages){try{const filtered=messages.filter(m=>m.role!=='system');const prompt=atob(SYSTEM_PROMPT);const body={model:TOGETHER_MODEL,messages:[{role:'system',content:prompt},...filtered],max_tokens:512};const res=await fetch('https://api.together.xyz/v1/chat/completions',{method:'POST',headers:{'Authorization':`Bearer ${SOCIALAI_API_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!res.ok){const errText=await res.text();throw new Error(`Together.ai API error: ${res.status} ${errText}`)}const data=await res.json();return data.choices?.[0]?.message?.content||'[No response]'}catch(e){console.error(e);alert('Error communicating with Together.ai API: '+e.message);return null}}newConversationBtn.addEventListener('click',createNewConversation);conversationSelect.addEventListener('change',()=>{const selectedId=conversationSelect.value;if(conversations[selectedId]){activeConversationId=selectedId;saveState();renderChatHistory()}});chatForm.addEventListener('submit',async(e)=>{e.preventDefault();const message=chatInput.value.trim();if(!message)return;if(!activeConversationId){alert('Please create a new conversation first.');return}conversations[activeConversationId].messages.push({role:'user',content:message});renderChatHistory();chatInput.value='';chatInput.disabled=true;saveState();const response=await sendToTogetherApi(conversations[activeConversationId].messages);if(response!==null){conversations[activeConversationId].messages.push({role:'assistant',content:response});renderChatHistory();saveState()}chatInput.disabled=false;chatInput.focus()});chatInput.addEventListener('keydown',(e)=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();chatForm.requestSubmit()}});function init(){loadState();renderConversationList();if(!activeConversationId){createNewConversation()}}init()})();</script></body></html>
+serpapi key
+
+0b669f41f0fc41f364ca75d153baded9a17b692999cb245ea0904a3313db33aa
+
+together key
+
+WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0u
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Social AI Chat</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  #chatHistory {
+    scrollbar-width: thin;
+    scrollbar-color: #a0aec0 transparent;
+  }
+  #chatHistory::-webkit-scrollbar {
+    width: 8px;
+  }
+  #chatHistory::-webkit-scrollbar-thumb {
+    background-color: #a0aec0;
+    border-radius: 4px;
+  }
+</style>
+</head>
+<body class="bg-gray-100 h-screen flex flex-col">
+
+<!-- Main chat area -->
+<main class="flex flex-col flex-grow max-w-3xl mx-auto w-full p-4">
+
+ <div class="flex justify-between items-center mb-2">
+  <div>
+    <!-- Insert your image here where the dropdown was -->
+    <img src="logo1.png" alt="Social AI" class="h-8 w-auto" />
+  </div>
+  <div class="flex items-center gap-2">
+    <label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label>
+    <select id="conversationSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
+    <button id="newConversationBtn" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition" title="Start a new conversation">New conversation</button>
+  </div>
+</div>
+
+
+ <div
+  id="chatHistory"
+  class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh] 
+         bg-[url('image.png')] bg-cover bg-center"
+  aria-live="polite"
+  aria-atomic="false"
+>
+  <!-- Messages will be appended here -->
+</div>
+
+  <form id="chatForm" class="flex gap-2">
+    <textarea
+      id="chatInput"
+      rows="2"
+      placeholder="Ask Social AI about anything . . . . .  
+[soc-ai llm 3.40.5]"
+      class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black"
+      required
+      aria-label="Chat message input"
+    ></textarea>
+
+<button
+      type="submit"
+      class="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition"
+      aria-label="Send message"
+    >
+      ➣  
+    </button>
+
+
+
+  </form>
+</main>
+
+<script>
+(() => {
+  // === CONFIGURATION ===
+  const SOCIALAI_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
+const SERPAPI_KEY = "0b669f41f0fc41f364ca75d153baded9a17b692999cb245ea0904a3313db33aa"; // <-- Set your SerpAPI key here
+
+  const TOGETHER_MODEL = 'google/gemma-2-27b-it';
+  const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0u";
+
+  // Storage keys
+  const STORAGE_KEYS = {
+    conversations: 'chatApp_conversations',
+    activeConversationId: 'chatApp_activeConversationId'
+  };
+
+  // DOM elements
+  const chatHistory = document.getElementById('chatHistory');
+  const chatForm = document.getElementById('chatForm');
+  const chatInput = document.getElementById('chatInput');
+  const newConversationBtn = document.getElementById('newConversationBtn');
+  const conversationSelect = document.getElementById('conversationSelect');
+
+
+
+  // In-memory state
+  let conversations = {};
+  let activeConversationId = null;
+
+  // --- Storage functions ---
+  function loadState() {
+    const storedConversations = localStorage.getItem(STORAGE_KEYS.conversations);
+    if (storedConversations) {
+      try {
+        conversations = JSON.parse(storedConversations);
+      } catch {}
+    }
+    const storedActiveConv = localStorage.getItem(STORAGE_KEYS.activeConversationId);
+    if (storedActiveConv && conversations[storedActiveConv]) {
+      activeConversationId = storedActiveConv;
+    }
+  }
+
+  function saveState() {
+    localStorage.setItem(STORAGE_KEYS.conversations, JSON.stringify(conversations));
+    if (activeConversationId) {
+      localStorage.setItem(STORAGE_KEYS.activeConversationId, activeConversationId);
+    }
+  }
+
+  function generateId() {
+    return 'conv_' + Math.random().toString(36).substring(2, 10);
+  }
+
+  // --- UI rendering ---
+  function renderConversationList() {
+    const convs = Object.values(conversations);
+    conversationSelect.innerHTML = '';
+    if (convs.length === 0) {
+      const opt = document.createElement('option');
+      opt.value = '';
+      opt.textContent = '(No conversations)';
+      opt.disabled = true;
+      conversationSelect.appendChild(opt);
+      activeConversationId = null;
+      saveState();
+      renderChatHistory();
+      return;
+    }
+    convs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+    convs.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c.id;
+      opt.textContent = `Conversation ${c.id.substring(12, 13)}`;
+      conversationSelect.appendChild(opt);
+    });
+    if (!convs.find(c => c.id === activeConversationId)) {
+      activeConversationId = convs[0].id;
+      saveState();
+    }
+    conversationSelect.value = activeConversationId;
+    renderChatHistory();
+  }
+
+  function renderChatHistory() {
+    chatHistory.innerHTML = '';
+    if (!activeConversationId || !conversations[activeConversationId]) {
+      chatHistory.innerHTML = '<p class="text-gray-500 italic">No conversation selected.</p>';
+      return;
+    }
+    const msgs = conversations[activeConversationId].messages;
+    msgs.forEach(msg => {
+      if (msg.role === 'system') return;
+      const div = document.createElement('div');
+      div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
+      const bubble = document.createElement('div');
+      bubble.className = msg.role === 'user'
+        ? 'inline-block bg-black text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
+        : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
+
+   // Helper to prevent HTML injection
+function escapeHtml(text) {
+  const div = document.createElement('div');
+  div.textContent = text;
+  return div.innerHTML;
+}
+
+if (msg.role === 'assistant') {
+  // Emoji icon:
+ 
+  // Or, for an image icon, comment out the above and uncomment below:
+  bubble.innerHTML = '<img src="ai.png" alt="Bot" class="inline h-8 w-8 mr-2" />' + escapeHtml(msg.content);
+} else {
+  bubble.textContent = msg.content;
+}
+
+
+      div.appendChild(bubble);
+      chatHistory.appendChild(div);
+    });
+    chatHistory.scrollTop = chatHistory.scrollHeight;
+  }
+
+  // --- Conversation logic ---
+  function createNewConversation() {
+    const id = generateId();
+    conversations[id] = {
+      id,
+      messages: [{ role: 'system', content: SYSTEM_PROMPT }],
+      createdAt: new Date().toISOString(),
+    };
+    activeConversationId = id;
+    saveState();
+    renderConversationList();
+    renderChatHistory();
+  }
+
+  async function sendToTogetherApi(messages) {
+    try {
+      // Always send system prompt as the first message
+      const filtered = messages.filter(m => m.role !== 'system');
+	const prompt = atob(SYSTEM_PROMPT); // decode her
+      const body = {
+        model: TOGETHER_MODEL,
+        messages: [
+          { role: 'system', content: prompt},
+          ...filtered
+        ],
+        max_tokens: 512
+      };
+      const res = await fetch('https://api.together.xyz/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${SOCIALAI_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(`Together.ai API error: ${res.status} ${errText}`);
+      }
+      const data = await res.json();
+      return data.choices?.[0]?.message?.content || '[No response]';
+    } catch (e) {
+      console.error(e);
+      alert('Error communicating with Together.ai API: ' + e.message);
+      return null;
+    }
+  }
+
+async function searchSerpApi(query) {
+  try {
+    const params = new URLSearchParams({
+      q: query,
+      api_key: SERPAPI_KEY,
+      engine: 'google', // or 'bing', etc.
+      num: 3
+    });
+    const url = `https://serpapi.com/search.json?${params.toString()}`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`SerpAPI error: ${res.status}`);
+    const data = await res.json();
+    // Extract top results (customize as needed)
+    if (data.organic_results && data.organic_results.length > 0) {
+      return data.organic_results.slice(0, 3).map(r =>
+        `• [${r.title}](${r.link})\n${r.snippet || ''}`
+      ).join('\n\n');
+    }
+    return "No web results found.";
+  } catch (e) {
+    console.error(e);
+    return "Error fetching web results.";
+  }
+}
+
+function needsWebSearch(message) {
+  // Simple keyword check (customize as needed)
+  const keywords = ["latest", "news", "current", "today", "who won", "score", "weather", "price", "stock", "headline"];
+  const msg = message.toLowerCase();
+  return keywords.some(kw => msg.includes(kw));
+}
+
+
+  // --- Event handlers ---
+  newConversationBtn.addEventListener('click', createNewConversation);
+
+  conversationSelect.addEventListener('change', () => {
+    const selectedId = conversationSelect.value;
+    if (conversations[selectedId]) {
+      activeConversationId = selectedId;
+      saveState();
+      renderChatHistory();
+    }
+  });
+
+chatForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = chatInput.value.trim();
+  if (!message) return;
+  if (!activeConversationId) {
+    alert('Please create a new conversation first.');
+    return;
+  }
+
+  // Append user message
+  conversations[activeConversationId].messages.push({ role: 'user', content: message });
+  renderChatHistory();
+  chatInput.value = '';
+  chatInput.disabled = true;
+  saveState();
+
+  // --- NEW: If needs web search, fetch from SerpAPI ---
+  let webResults = null;
+  if (needsWebSearch(message)) {
+    // Show "Searching web..." interim message
+    conversations[activeConversationId].messages.push({ role: 'assistant', content: "Searching the web for real-time information..." });
+    renderChatHistory();
+
+    webResults = await searchSerpApi(message);
+
+    // Remove interim message
+    conversations[activeConversationId].messages.pop();
+  }
+
+  // If we have web results, prepend them to the LLM context
+  let llmMessages = [...conversations[activeConversationId].messages];
+  if (webResults) {
+    llmMessages.push({
+      role: 'system',
+      content: `Web search results:\n${webResults}\n\nUse these results to answer the user's question.`
+    });
+  }
+
+  // Get assistant response
+  const response = await sendToTogetherApi(llmMessages);
+  if (response !== null) {
+    let finalResponse = response;
+    if (webResults) {
+      // Optionally, show web results before the LLM answer
+      finalResponse = `**Web Results:**\n${webResults}\n\n**AI Answer:**\n${response}`;
+    }
+    conversations[activeConversationId].messages.push({ role: 'assistant', content: finalResponse });
+    renderChatHistory();
+    saveState();
+  }
+  chatInput.disabled = false;
+  chatInput.focus();
+});
+
+  // Allow Enter to send (without Shift)
+  chatInput.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      chatForm.requestSubmit();
+    }
+  });
+
+  // --- Initialization ---
+  function init() {
+    loadState();
+    renderConversationList();
+    if (!activeConversationId) {
+      createNewConversation();
+    }
+  }
+
+  init();
+})();
+</script>
+</body>
+</html>
