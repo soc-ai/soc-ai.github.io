@@ -1,51 +1,120 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Social AI Chat - Landing</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <meta charset="UTF-8">
+  <title>AI Chatbot Landing Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
     body {
-      min-height: 100vh;
-      background: linear-gradient(135deg, #f8fafc 0%, #e0e7ef 100%);
+      margin: 0; font-family: sans-serif; background: #f8f9fa; color: #222;
+      display: flex; flex-direction: column; min-height: 100vh;
     }
-    .glass {
-      background: rgba(255,255,255,0.85);
-      backdrop-filter: blur(8px);
-      box-shadow: 0 4px 32px 0 rgba(0,0,0,0.08);
+    header, footer {
+      background: #273043; color: #fff; padding: 1em 2em;
+      text-align: center;
+    }
+    .container {
+      flex: 1; display: flex; min-height: 0;
+    }
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid #eee;
+      width: 220px;
+      transition: width 0.3s;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .sidebar.collapsed {
+      width: 40px;
+    }
+    .sidebar-toggle {
+      background: #273043; color: #fff; border: none;
+      width: 30px; height: 30px; cursor: pointer;
+      font-size: 1 em;
+      align-self: flex-end;
+      margin: 0.5em 0.5em 0 0;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .sidebar.collapsed .sidebar-content {
+      display: none;
+    }
+    .sidebar-content {
+      padding: 1em;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      font-size: 1.1em;
+      color: #273043;
+    }
+    .sidebar ul {
+      list-style: none; padding: 0; margin: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.7em;
+    }
+    .sidebar ul li a {
+      color: #273043; text-decoration: none;
+      word-break: break-all;
+      font-size: 0.97em;
+    }
+    .main-content {
+      flex: 1; display: flex; justify-content: center; align-items: stretch;
+      background: #f4f6f8;
+      min-width: 0;
+    }
+    .chat-iframe {
+      border: 10;
+      width: 100%; max-width: 1000px; min-width: 320px;
+      height: 90vh; min-height: 400px; background: #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+      border-radius: 8px;
+      margin: 2em auto;
+      display: block;
+    }
+    @media (max-width: 800px) {
+      .container { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #eee; }
+      .sidebar.collapsed { width: 40px; }
+      .main-content { justify-content: stretch; }
     }
   </style>
 </head>
-<body class="flex items-center justify-center min-h-screen">
+<body>
+  <header>
+ <img id="aiLogo" src="logo1.png" alt="Social AI" class="h-5 w-auto" />
 
-  <main class="glass rounded-xl p-8 max-w-xl w-full flex flex-col items-center gap-6">
-    <!-- Logo (optional) -->
-    <img src="logo1.png" alt="Social AI" class="h-10 mb-2" />
-
-    <!-- Title -->
-    <h1 class="text-3xl font-bold text-gray-900 text-center">Welcome to Social AI Chat</h1>
-    <p class="text-gray-600 text-center mb-2">
-      Your volunteer-powered AI assistant. Start a conversation below!
-    </p>
-
-    <!-- Call-to-action button (optional, can scroll down to chat) -->
-    <a href="#chat" class="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-900 transition mb-2">
-      Start Chatting
-    </a>
-
-    <!-- Responsive iframe container -->
- <div class="w-full" style="height: 80vh;">
-  <iframe 
-    src="chat.html"
-    title="Social AI Chat"
-    class="w-full h-full border-0"
-  ></iframe>
-</div>
-    <p class="text-xs text-gray-400 mt-4 text-center">
-      Powered by Social AI volunteers. Your conversations are private and stored locally.
-    </p>
-  </main>
-
+   
+    <div style="font-size:1em; font-weight:400;">Welcome! Ask anything or explore resources from the sidebar.</div>
+  </header>
+  <div class="container">
+    <nav class="sidebar collapsed" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">☰</button>
+      <div class="sidebar-content">
+        <h3>Resources</h3>
+        <ul id="sidebarLinks">
+          <li><a href="https://soc-ai.github.io/" target="_blank">Social AI</a></li>
+          <li><a href="https://www.perplexity.ai/" target="_blank">Perplexity AI</a></li>
+          <li><a href="https://www.wikipedia.org/" target="_blank">Wikipedia</a></li>
+          <!-- Add more links as needed -->
+        </ul>
+     </div>
+    </nav>
+    <main class="main-content">
+      <!-- Replace src with your chatbot app/page -->
+      <iframe class="chat-iframe" src="llm-google-search.html" title="AI Chatbot"></iframe>
+    </main>
+  </div>
+  <footer>
+    &copy; 2025 Social AI  —  All rights reserved.
+  </footer>
+  <script>
+    // Collapsible sidebar logic
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+  </script>
 </body>
 </html>

@@ -27,7 +27,8 @@
  <div class="flex justify-between items-center mb-2">
   <div>
     <!-- Insert your image here where the dropdown was -->
-    <img src= "ai.gif" alt="Social AI" class="h-8 w-auto" / >
+  <img id="aiLogo" src="ai.gif" alt="Social AI" class="h-8 w-auto" />
+
   </div>
   <div class="flex items-center gap-2">
     <label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label>
@@ -103,6 +104,14 @@ Search  ➣  </button>
   const newConversationBtn = document.getElementById('newConversationBtn');
   const conversationSelect = document.getElementById('conversationSelect');
 
+function showSpinner() {
+  const logo = document.getElementById('aiLogo');
+  if (logo) logo.src = 'spinner.gif';
+}
+function showLogo() {
+  const logo = document.getElementById('aiLogo');
+  if (logo) logo.src = 'ai.gif';
+}
 
 
   // In-memory state
@@ -191,7 +200,7 @@ if (msg.role === 'assistant') {
   // Emoji icon:
  
   // Or, for an image icon, comment out the above and uncomment below:
-  bubble.innerHTML = '<img src="ai.png" alt="Bot" class="inline h-8 w-8 mr-2" />' + escapeHtml(msg.content);
+  bubble.innerHTML = '<img src="ai.gif" alt="Bot" class="inline h-5 w-5 mr-2" />' + escapeHtml(msg.content);
 } else {
   bubble.textContent = msg.content;
 }
@@ -279,36 +288,38 @@ document.getElementById('googleSearchBtn').addEventListener('click', function() 
     }
   });
 
-  chatForm.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const message = chatInput.value.trim();
-    if (!message) return;
-    if (!activeConversationId) {
-      alert('Please create a new conversation first.');
-      return;
-    }
+ chatForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = chatInput.value.trim();
+  if (!message) return;
+  if (!activeConversationId) {
+    alert('Please create a new conversation first.');
+    return;
+  }
 
+  // Append user message
+  conversations[activeConversationId].messages.push({ role: 'user', content: message });
+  renderChatHistory();
+  chatInput.value = '';
+  chatInput.disabled = true;
+  saveState();
 
+  showSpinner(); // <-- Show spinner while waiting
 
+  // Get assistant response
+  const response = await sendToTogetherApi(conversations[activeConversationId].messages);
 
+  showLogo(); // <-- Restore logo after response
 
-    // Append user message
-    conversations[activeConversationId].messages.push({ role: 'user', content: message });
+  if (response !== null) {
+    conversations[activeConversationId].messages.push({ role: 'assistant', content: response });
     renderChatHistory();
-    chatInput.value = '';
-    chatInput.disabled = true;
     saveState();
+  }
+  chatInput.disabled = false;
+  chatInput.focus();
+});
 
-    // Get assistant response
-    const response = await sendToTogetherApi(conversations[activeConversationId].messages);
-    if (response !== null) {
-      conversations[activeConversationId].messages.push({ role: 'assistant', content: response });
-      renderChatHistory();
-      saveState();
-    }
-    chatInput.disabled = false;
-    chatInput.focus();
-  });
 
   // Allow Enter to send (without Shift)
   chatInput.addEventListener('keydown', (e) => {
