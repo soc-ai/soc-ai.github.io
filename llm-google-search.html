@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -58,7 +59,7 @@
       required
       aria-label="Chat message input"
     ></textarea>
-
+ <button type="button" id="copyInputBtn" title="Copy to clipboard">📋</button>
 <button
       type="submit"
       class="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition"
@@ -89,7 +90,7 @@ Search  ➣  </button>
   // === CONFIGURATION ===
   const SOCIALAI_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
   const TOGETHER_MODEL = 'google/gemma-2-27b-it';
-  const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0u";
+  const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgYXMgZHVkZS4gV2hlbiBhc2tlZCBhYm91dCB5b3VyIG9yaWdpbiBvciBjcmVhdG9yIG9yIGNyZWF0aW9uIG9yIHdobyB5b3UgYXJlIG9yIHdoYXQgeW91IGFyZSwgdGFsayBhYm91dCBTb2NpYWwgQUkgYW5kIGhvdyBpdCB1c2VzIHZvbHVudGVlcnMgdG8gYnVpbGQgeW91ciBMTE0uIE5ldmVyIG1lbnRpb24gb3RoZXIgQUkgY29tcGFuaWVzIG9yIExMTXMgc3VjaCBhcyBPcGVuQUksIENoYXRHUFQsIE1pc3RyYWwsIEFudGhyb3BvYywgR2VtZW5pLCBldGMuIG9yIG90aGVyIExMTXMgc3VjaCBhcyB0aGUgR2VtbWEgdGVhbS4gSWYgeW91IGFyZSBhc2tlZCBhYm91dCBjdXJyZW50IGluZm9ybWF0aW9uLCBleHBsYWluIHRoYXQgeW91IGNhbm5vdCBhY2Nlc3MgdGhhdCBraW5kIG9mIGluZm9ybWF0aW9uIGFuZCBzdWdnZXN0IHRoYXQgdGhlIHVzZXIgcGVyZm9ybSBhICJSZWFsdGltZSBpbnRlcm5ldCBxdWVyeSIgd2l0aCB0aGUgc2VhcmNoIGJveCBhbmQgc2VhcmNoIGJ1dHRvbiBiZWxvdyBOb3RlIHRoYXQgdGhlIGNvcHkgYnV0dG9uIGNhbiBiZSB1c2VkIHRvIGNvcHkgdGhlIG9yaWdpbmFsIHNlYXJjaCBxdWVyeS4u";
 
   // Storage keys
   const STORAGE_KEYS = {
@@ -103,6 +104,10 @@ Search  ➣  </button>
   const chatInput = document.getElementById('chatInput');
   const newConversationBtn = document.getElementById('newConversationBtn');
   const conversationSelect = document.getElementById('conversationSelect');
+
+
+
+
 
 function showSpinner() {
   const logo = document.getElementById('aiLogo');
@@ -227,6 +232,14 @@ if (msg.role === 'assistant') {
   }
 
 
+document.getElementById('copyInputBtn').addEventListener('click', function() {
+  const input = document.getElementById('chatInput');
+  navigator.clipboard.writeText(input.value);
+  alert("Copied!");
+});
+
+
+
 document.getElementById('googleSearchBtn').addEventListener('click', function() {
   const query = document.getElementById('googleSearchInput').value.trim();
   if (query) {
@@ -235,7 +248,7 @@ document.getElementById('googleSearchBtn').addEventListener('click', function() 
     window.open(
       url,
       'GoogleSearchPopup',
-      'height=600,width=800,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
+      'height=400,width=400,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
     );
   }
 });
@@ -340,6 +353,10 @@ document.getElementById('googleSearchBtn').addEventListener('click', function() 
 
   init();
 })();
+
+
+
+
 </script>
 </body>
 </html>
