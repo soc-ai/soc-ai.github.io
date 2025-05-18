@@ -1,17 +1,12 @@
-serpapi key
-
-0b669f41f0fc41f364ca75d153baded9a17b692999cb245ea0904a3313db33aa
-
-together key
-
-WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0u
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Social AI Chat</title>
+
+<!-- Favicon --> <link rel="shortcut icon" href="ai.ico"> <link rel="icon" href="ai.ico"> <!-- Mobile Browser Address Bar Color --> <meta name="theme-color" content="#191970">
+
 <script src="https://cdn.tailwindcss.com"></script>
 <style>
   #chatHistory {
@@ -25,6 +20,20 @@ WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0
     background-color: #a0aec0;
     border-radius: 4px;
   }
+  #toast {
+    display: none;
+position: fixed;
+    bottom: 30px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #222;
+    color: #fff;
+    padding: 12px 24px;
+    border-radius: 6px;
+    font-size: 1em;
+    z-index: 10000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  }
 </style>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col">
@@ -34,21 +43,19 @@ WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0
 
  <div class="flex justify-between items-center mb-2">
   <div>
-    <!-- Insert your image here where the dropdown was -->
-    <img src="logo1.png" alt="Social AI" class="h-8 w-auto" />
+    <img id="aiLogo" src="ai.gif" alt="Social AI" class="h-8 w-auto" />
   </div>
   <div class="flex items-center gap-2">
-    <label for="conversationSelect" class="font-semibold text-gray-700">Conversations:</label>
+    <label for="conversationSelect" class="font-semibold text-gray-700">Prior:</label>
     <select id="conversationSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
     <button id="newConversationBtn" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition" title="Start a new conversation">New conversation</button>
   </div>
 </div>
 
-
  <div
   id="chatHistory"
   class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh] 
-         bg-[url('image.png')] bg-cover bg-center"
+         bg-[url('rectangle.png')] bg-cover bg-center"
   aria-live="polite"
   aria-atomic="false"
 >
@@ -58,33 +65,66 @@ WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0
   <form id="chatForm" class="flex gap-2">
     <textarea
       id="chatInput"
-      rows="2"
-      placeholder="Ask Social AI about anything . . . . .  
-[soc-ai llm 3.40.5]"
-      class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black"
+      rows="1"
+      placeholder="Ask Social AI anything ... [soc-ai llm 3.40.5]"
+class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black"
       required
       aria-label="Chat message input"
     ></textarea>
-
-<button
+    <button type="button" id="copyInputBtn" title="Copy to clipboard">⧉</button>
+    <button
       type="submit"
       class="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition"
       aria-label="Send message"
     >
       ➣  
     </button>
-
-
-
   </form>
+
+<br>
+
+<form id="googleSearchForm" style="display:flex; gap:8px;" onsubmit="return false;">
+  <input type="text" id="googleSearchInput" placeholder="Realtime internet query" style="flex:1; padding:8px; font-size:16px;">
+  <button type="button" id="googleSearchBtn" style="padding:8px 16px; font-size:16px;" class="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition">
+      ➣
+  </button>
+
+<div align="right" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
+<script src="https://studio.pickaxe.co/api/embed/bundle.js" defer></script>
+
+</form>
+
+
+
+<div class="relative mt-2" id="followupDropdownContainer">
+  <button id="toggleFollowupDropdown" type="button"
+    class="bg-black text-white px-3 py-1 rounded hover:bg-gray-900 transition font-medium"
+
+    style="margin-bottom:4px;">
+    Follow-up Questions ▼
+  </button>
+
+
+
+  <div id="followupDropdown" style="display:none; position:absolute; left:0; right:0; z-index:50;"
+       class="bg-white border border-blue-200 rounded shadow-lg mt-1">
+    <ul class="divide-y divide-blue-100" id="followupList">
+      <!-- Suggestions will be inserted here -->
+    </ul>
+  </div>
+</div>
+
+
+
 </main>
+
+<!-- Toast Notification -->
+<div id="toast"></div>
 
 <script>
 (() => {
   // === CONFIGURATION ===
   const SOCIALAI_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
-const SERPAPI_KEY = "0b669f41f0fc41f364ca75d153baded9a17b692999cb245ea0904a3313db33aa"; // <-- Set your SerpAPI key here
-
   const TOGETHER_MODEL = 'google/gemma-2-27b-it';
   const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0u";
 
@@ -101,7 +141,25 @@ const SERPAPI_KEY = "0b669f41f0fc41f364ca75d153baded9a17b692999cb245ea0904a3313d
   const newConversationBtn = document.getElementById('newConversationBtn');
   const conversationSelect = document.getElementById('conversationSelect');
 
+function showToast(message) {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.style.display = 'block';
+  clearTimeout(showToast._timeout);
+  showToast._timeout = setTimeout(() => {
+    toast.style.display = 'none';
+  }, 1400);
+}
 
+
+  function showSpinner() {
+    const logo = document.getElementById('aiLogo');
+    if (logo) logo.src = 'spinner.gif';
+  }
+  function showLogo() {
+    const logo = document.getElementById('aiLogo');
+    if (logo) logo.src = 'ai.gif';
+  }
 
   // In-memory state
   let conversations = {};
@@ -133,73 +191,95 @@ const SERPAPI_KEY = "0b669f41f0fc41f364ca75d153baded9a17b692999cb245ea0904a3313d
   }
 
   // --- UI rendering ---
-  function renderConversationList() {
-    const convs = Object.values(conversations);
-    conversationSelect.innerHTML = '';
-    if (convs.length === 0) {
-      const opt = document.createElement('option');
-      opt.value = '';
-      opt.textContent = '(No conversations)';
-      opt.disabled = true;
-      conversationSelect.appendChild(opt);
-      activeConversationId = null;
-      saveState();
-      renderChatHistory();
-      return;
-    }
-    convs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
-    convs.forEach(c => {
-      const opt = document.createElement('option');
-      opt.value = c.id;
-      opt.textContent = `Conversation ${c.id.substring(12, 13)}`;
-      conversationSelect.appendChild(opt);
-    });
-    if (!convs.find(c => c.id === activeConversationId)) {
-      activeConversationId = convs[0].id;
-      saveState();
-    }
-    conversationSelect.value = activeConversationId;
+function renderConversationList() {
+  const convs = Object.values(conversations);
+  conversationSelect.innerHTML = '';
+  if (convs.length === 0) {
+    const opt = document.createElement('option');
+    opt.value = '';
+    opt.textContent = '(No conversations)';
+    opt.disabled = true;
+    conversationSelect.appendChild(opt);
+    activeConversationId = null;
+    saveState();
     renderChatHistory();
+    return;
+  }
+  convs.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+  convs.forEach(c => {
+    const opt = document.createElement('option');
+    opt.value = c.id;
+    // Find the first user query in the conversation
+    let firstUserMsg = (c.messages || []).find(m => m.role === 'user');
+    let label = firstUserMsg && firstUserMsg.content
+      ? firstUserMsg.content.substring(0, 25) + (firstUserMsg.content.length > 12 ? '...' : '')
+      : '(No query)';
+    opt.textContent = label;
+    conversationSelect.appendChild(opt);
+  });
+  if (!convs.find(c => c.id === activeConversationId)) {
+    activeConversationId = convs[0].id;
+    saveState();
+  }
+  conversationSelect.value = activeConversationId;
+  renderChatHistory();
+}
+
+
+  // Helper to prevent HTML injection
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
   }
 
-  function renderChatHistory() {
-    chatHistory.innerHTML = '';
-    if (!activeConversationId || !conversations[activeConversationId]) {
-      chatHistory.innerHTML = '<p class="text-gray-500 italic">No conversation selected.</p>';
-      return;
+ function renderChatHistory() {
+  chatHistory.innerHTML = '';
+  if (!activeConversationId || !conversations[activeConversationId]) {
+    chatHistory.innerHTML = '<p class="text-gray-500 italic">No conversation selected.</p>';
+    return;
+  }
+  const msgs = conversations[activeConversationId].messages;
+  msgs.forEach((msg, idx) => {
+    if (msg.role === 'system') return;
+    const div = document.createElement('div');
+    div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
+    const bubble = document.createElement('div');
+    bubble.className = msg.role === 'user'
+      ? 'inline-block bg-black text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
+      : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
+
+    if (msg.role === 'assistant') {
+      // Add LLM icon, response, and copy button
+      bubble.innerHTML = `
+        <img src="ai.gif" alt="Bot" class="inline h-5 w-5 mr-2 align-middle" />
+        <span class="align-middle">${escapeHtml(msg.content)}</span>
+        <button class="copy-bubble-btn" data-idx="${idx}" title="Copy to clipboard"
+          style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;font-size:1.15em;vertical-align:middle;text-align: left;">
+⧉
+        </button>
+      `;
+    } else {
+      bubble.textContent = msg.content;
     }
-    const msgs = conversations[activeConversationId].messages;
-    msgs.forEach(msg => {
-      if (msg.role === 'system') return;
-      const div = document.createElement('div');
-      div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
-      const bubble = document.createElement('div');
-      bubble.className = msg.role === 'user'
-        ? 'inline-block bg-black text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
-        : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
 
-   // Helper to prevent HTML injection
-function escapeHtml(text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
+    div.appendChild(bubble);
+    chatHistory.appendChild(div);
+  });
+  chatHistory.scrollTop = chatHistory.scrollHeight;
+
+  // Add click event listeners for all copy buttons
+  document.querySelectorAll('.copy-bubble-btn').forEach(btn => {
+    btn.onclick = function() {
+      const idx = parseInt(this.getAttribute('data-idx'));
+      const msg = conversations[activeConversationId].messages[idx];
+      if (msg) {
+        navigator.clipboard.writeText(msg.content);
+        showToast("Copied!");
+      }
+    };
+  });
 }
-
-if (msg.role === 'assistant') {
-  // Emoji icon:
- 
-  // Or, for an image icon, comment out the above and uncomment below:
-  bubble.innerHTML = '<img src="ai.png" alt="Bot" class="inline h-8 w-8 mr-2" />' + escapeHtml(msg.content);
-} else {
-  bubble.textContent = msg.content;
-}
-
-
-      div.appendChild(bubble);
-      chatHistory.appendChild(div);
-    });
-    chatHistory.scrollTop = chatHistory.scrollHeight;
-  }
 
   // --- Conversation logic ---
   function createNewConversation() {
@@ -215,15 +295,52 @@ if (msg.role === 'assistant') {
     renderChatHistory();
   }
 
+  // --- TOAST ---
+  function showToast(message) {
+    const toast = document.getElementById('toast');
+    toast.textContent = message;
+    toast.style.display = 'block';
+    clearTimeout(showToast._timeout);
+    showToast._timeout = setTimeout(() => {
+      toast.style.display = 'none';
+    }, 1400);
+  }
+
+  // --- COPY BUTTON HANDLER ---
+ document.getElementById('copyInputBtn').addEventListener('click', function() {
+  const input = document.getElementById('chatInput');
+  navigator.clipboard.writeText(input.value);
+  input.value = ''; // <-- This clears the query box!
+  if (typeof showToast === 'function') {
+    showToast("Copied!");
+  }
+  // If you don't have showToast, you can use alert or nothing
+});
+
+  // --- ANDISEARCH POPUP HANDLER ---
+ document.getElementById('googleSearchBtn').addEventListener('click', function() {
+  const input = document.getElementById('googleSearchInput');
+  const query = input.value.trim();
+  if (query) {
+    const url = "https://andisearch.com/?q=" + encodeURIComponent(query);
+    window.open(
+      url,
+      'GoogleSearchPopup',
+      'height=400,width=400,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
+    );
+    input.value = ''; // <-- This clears the search box!
+  }
+});
+
   async function sendToTogetherApi(messages) {
     try {
       // Always send system prompt as the first message
       const filtered = messages.filter(m => m.role !== 'system');
-	const prompt = atob(SYSTEM_PROMPT); // decode her
+      const prompt = atob(SYSTEM_PROMPT); // decode here
       const body = {
         model: TOGETHER_MODEL,
         messages: [
-          { role: 'system', content: prompt},
+          { role: 'system', content: prompt },
           ...filtered
         ],
         max_tokens: 512
@@ -249,39 +366,6 @@ if (msg.role === 'assistant') {
     }
   }
 
-async function searchSerpApi(query) {
-  try {
-    const params = new URLSearchParams({
-      q: query,
-      api_key: SERPAPI_KEY,
-      engine: 'google', // or 'bing', etc.
-      num: 3
-    });
-    const url = `https://serpapi.com/search.json?${params.toString()}`;
-    const res = await fetch(url);
-    if (!res.ok) throw new Error(`SerpAPI error: ${res.status}`);
-    const data = await res.json();
-    // Extract top results (customize as needed)
-    if (data.organic_results && data.organic_results.length > 0) {
-      return data.organic_results.slice(0, 3).map(r =>
-        `• [${r.title}](${r.link})\n${r.snippet || ''}`
-      ).join('\n\n');
-    }
-    return "No web results found.";
-  } catch (e) {
-    console.error(e);
-    return "Error fetching web results.";
-  }
-}
-
-function needsWebSearch(message) {
-  // Simple keyword check (customize as needed)
-  const keywords = ["latest", "news", "current", "today", "who won", "score", "weather", "price", "stock", "headline"];
-  const msg = message.toLowerCase();
-  return keywords.some(kw => msg.includes(kw));
-}
-
-
   // --- Event handlers ---
   newConversationBtn.addEventListener('click', createNewConversation);
 
@@ -294,59 +378,37 @@ function needsWebSearch(message) {
     }
   });
 
-chatForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const message = chatInput.value.trim();
-  if (!message) return;
-  if (!activeConversationId) {
-    alert('Please create a new conversation first.');
-    return;
-  }
-
-  // Append user message
-  conversations[activeConversationId].messages.push({ role: 'user', content: message });
-  renderChatHistory();
-  chatInput.value = '';
-  chatInput.disabled = true;
-  saveState();
-
-  // --- NEW: If needs web search, fetch from SerpAPI ---
-  let webResults = null;
-  if (needsWebSearch(message)) {
-    // Show "Searching web..." interim message
-    conversations[activeConversationId].messages.push({ role: 'assistant', content: "Searching the web for real-time information..." });
-    renderChatHistory();
-
-    webResults = await searchSerpApi(message);
-
-    // Remove interim message
-    conversations[activeConversationId].messages.pop();
-  }
-
-  // If we have web results, prepend them to the LLM context
-  let llmMessages = [...conversations[activeConversationId].messages];
-  if (webResults) {
-    llmMessages.push({
-      role: 'system',
-      content: `Web search results:\n${webResults}\n\nUse these results to answer the user's question.`
-    });
-  }
-
-  // Get assistant response
-  const response = await sendToTogetherApi(llmMessages);
-  if (response !== null) {
-    let finalResponse = response;
-    if (webResults) {
-      // Optionally, show web results before the LLM answer
-      finalResponse = `**Web Results:**\n${webResults}\n\n**AI Answer:**\n${response}`;
+  chatForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const message = chatInput.value.trim();
+    if (!message) return;
+    if (!activeConversationId) {
+      alert('Please create a new conversation first.');
+      return;
     }
-    conversations[activeConversationId].messages.push({ role: 'assistant', content: finalResponse });
+
+    // Append user message
+    conversations[activeConversationId].messages.push({ role: 'user', content: message });
     renderChatHistory();
+ //   chatInput.value = '';
+    chatInput.disabled = true;
     saveState();
-  }
-  chatInput.disabled = false;
-  chatInput.focus();
-});
+
+    showSpinner(); // <-- Show spinner while waiting
+
+    // Get assistant response
+    const response = await sendToTogetherApi(conversations[activeConversationId].messages);
+
+    showLogo(); // <-- Restore logo after response
+
+    if (response !== null) {
+      conversations[activeConversationId].messages.push({ role: 'assistant', content: response });
+      renderChatHistory();
+      saveState();
+    }
+    chatInput.disabled = false;
+    chatInput.focus();
+  });
 
   // Allow Enter to send (without Shift)
   chatInput.addEventListener('keydown', (e) => {
@@ -367,6 +429,81 @@ chatForm.addEventListener('submit', async (e) => {
 
   init();
 })();
+
+// --- Follow-up Questions Dropdown Logic ---
+
+// You can make these dynamic later, for now use static
+let followupSuggestions = [
+  "Can you explain this topic in more detail?",
+  "What are the latest developments about this?",
+  "What are some common misconceptions?"
+];
+
+const followupDropdown = document.getElementById('followupDropdown');
+const followupList = document.getElementById('followupList');
+const toggleFollowupDropdown = document.getElementById('toggleFollowupDropdown');
+const chatInput = document.getElementById('chatInput');
+const chatForm = document.getElementById('chatForm');
+
+// Populate the dropdown with clickable suggestions
+function renderFollowupSuggestions() {
+  followupList.innerHTML = '';
+  followupSuggestions.forEach((q, i) => {
+    const li = document.createElement('li');
+    li.innerHTML = `
+      <button class="w-full text-left px-4 py-2 hover:bg-blue-50 transition followup-suggestion-btn"
+              data-idx="${i}" style="white-space:normal;">
+        ${q}
+      </button>
+    `;
+    followupList.appendChild(li);
+  });
+}
+
+// Toggle dropdown visibility
+toggleFollowupDropdown.addEventListener('click', function() {
+  if (followupDropdown.style.display === 'none') {
+    renderFollowupSuggestions();
+    followupDropdown.style.display = 'block';
+    toggleFollowupDropdown.textContent = "Follow-up Questions ▲";
+  } else {
+    followupDropdown.style.display = 'none';
+    toggleFollowupDropdown.textContent = "Follow-up Questions ▼";
+  }
+});
+
+// Handle suggestion click: send to LLM
+followupList.addEventListener('click', function(e) {
+  if (e.target.classList.contains('followup-suggestion-btn')) {
+    const idx = e.target.getAttribute('data-idx');
+    const question = followupSuggestions[idx];
+    if (question) {
+      chatInput.value = question;
+      followupDropdown.style.display = 'none';
+      toggleFollowupDropdown.textContent = "Follow-up Questions ▼";
+      chatForm.requestSubmit();
+    }
+  }
+});
+
+
 </script>
+
+<div id="toast" style="
+  display:none;
+  position: fixed;
+  bottom: 30px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #222;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1em;
+  z-index: 10000;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+"></div>
+
+
 </body>
 </html>
