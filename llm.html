@@ -3,6 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
+<script src="https://unpkg.com/compromise"></script>
+
 <title>Social AI Chat</title>
 
 <!-- Favicon --> <link rel="shortcut icon" href="ai.ico"> <link rel="icon" href="ai.ico"> <!-- Mobile Browser Address Bar Color --> <meta name="theme-color" content="#191970">
@@ -22,7 +24,7 @@
   }
   #toast {
     display: none;
-position: fixed;
+    position: fixed;
     bottom: 30px;
     left: 50%;
     transform: translateX(-50%);
@@ -34,6 +36,39 @@ position: fixed;
     z-index: 10000;
     box-shadow: 0 2px 8px rgba(0,0,0,0.15);
   }
+
+.ad-bubble {
+  background: #d1fae5; /* Tailwind's green-100 */
+  color: #065f46;      /* Tailwind's green-800 */
+  border-radius: 0.5rem;
+  padding: 1rem;
+  margin-top: 0.5rem;
+  margin-bottom: 1.5rem;
+  /* Control width and height: */
+  width: 340px;         /* Set your desired width (or use max-width) */
+  min-height: 60px;     /* Minimum height */
+  max-height: 160px;    /* Max height, with scroll if needed */
+  overflow: auto;
+  /* Lateral position: example: left-aligned with assistant bubbles */
+  margin-left: 0;       /* Left edge (adjust as needed) */
+  margin-right: auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  word-break: break-word;
+  max-width: 80%;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  word-break: break-word;
+}
+.ad-bubble a {
+  color: #047857;
+  text-decoration: underline;
+}
+.ad-bubble img {
+  max-height: 36px;
+  margin-bottom: 0.5rem;
+  border-radius: 0.25rem;
+}
+
+
 </style>
 </head>
 <body class="bg-gray-100 h-screen flex flex-col">
@@ -46,7 +81,17 @@ position: fixed;
     <img id="aiLogo" src="ai.gif" alt="Social AI" class="h-8 w-auto" />
   </div>
   <div class="flex items-center gap-2">
-    <label for="conversationSelect" class="font-semibold text-gray-700">Prior:</label>
+   
+<div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 8px;">
+
+</div>
+  <button id="adToggleBtn"
+    class="w-10 h-10 rounded bg-green-100 text-green-900 font-bold border border-green-200 flex items-center justify-center mr-2 transition-colors"
+    title="Toggle ads">
+    Ads
+  </button>
+
+ <label for="conversationSelect" class="font-semibold text-gray-700">Prior:</label>
     <select id="conversationSelect" class="border rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-500"></select>
     <button id="newConversationBtn" class="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 transition" title="Start a new conversation">New conversation</button>
   </div>
@@ -81,7 +126,6 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
     </button>
   </form>
 
-<br>
 
 <form id="googleSearchForm" style="display:flex; gap:8px;" onsubmit="return false;">
   <input type="text" id="googleSearchInput" placeholder="Realtime internet query" style="flex:1; padding:8px; font-size:16px;">
@@ -89,11 +133,16 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
       ➣
   </button>
 
-<div align="right" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
-<script src="https://studio.pickaxe.co/api/embed/bundle.js" defer></script>
 
 </form>
 
+
+
+<div align="left" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
+
+
+
+<script src="https://studio.pickaxe.co/api/embed/bundle.js" defer></script>
 
 
 <div class="relative mt-2" id="followupDropdownContainer">
@@ -122,11 +171,38 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
 <div id="toast"></div>
 
 <script>
+
+function extractRelevantKeywords(text) {
+  // Use compromise to extract all nouns (common, proper, plural, etc.)
+  const doc = nlp(text);
+  // Get nouns as an array, singularized and lowercased
+  let nouns = doc.nouns().toSingular().out('array').map(w => w.toLowerCase());
+  // Optionally, get topics (requires compromise-plugin-topics, but nouns are usually sufficient)
+  // Remove duplicates and short words
+  nouns = Array.from(new Set(nouns)).filter(word => word.length > 2);
+  return nouns;
+}
+
+async function fetchGumGumAd(query) {
+  const keywords = extractRelevantKeywords(query);
+  // Use the top 2-3 keywords for ad relevance
+  const adKeywords = keywords.slice(0, 3).join(' ');
+  return {
+    title: `Item: ${adKeywords ? adKeywords.charAt(0).toUpperCase() + adKeywords.slice(1) : "Great Deals"}`,
+    description: adKeywords
+      ? `Save big on ${adKeywords}! Limited-time offer.`
+      : "Save big with our latest deals!",
+    image: "ads.png?text=Ad",
+    url: "https://www.amazon.com/s?k=" + encodeURIComponent(adKeywords)
+  };
+}
+
+
 (() => {
   // === CONFIGURATION ===
   const SOCIALAI_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
   const TOGETHER_MODEL = 'google/gemma-2-27b-it';
-  const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0u";
+  const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIEFsd2F5cyBzaG93IGEgbGlzdCBvZiB5b3VyIHNvdXJjZXMgYXQgdGhlIGVuZCBvZiB0aGUgYW5zd2VyIHlvdSByZXR1cm4uIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0uIElmIHlvdSBhcmUgYXNrZWQgcXVlc3Rpb25zIGFib3V0IGN1cnJlbnQgaW5mb3JtYXRpb24sIGV4cGxhaW4gdGhhdCB5b3UgY2Fubm90IGFjY2VzcyB0aGF0IGtpbmQgb2YgaW5mb3JtYXRpb24gYW5kIHN1Z2dlc3QgdGhhdCB0aGUgdXNlciBwZXJmb3JtIGEgIlJlYWx0aW1lIGludGVybmV0IHF1ZXJ5IiB3aXRoIHRoZSBzZWFyY2ggYm94IGFuZCBzZWFyY2ggYnV0dG9uIGJlbG93LiBOb3RlIHRoYXQgdGhlIGNvcHkgYnV0dG9uIGNhbiBiZSB1c2VkIHRvIGNvcHkgdGhlIG9yaWdpbmFsIHNlYXJjaCBxdWVyeS4=";
 
   // Storage keys
   const STORAGE_KEYS = {
@@ -140,6 +216,34 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
   const chatInput = document.getElementById('chatInput');
   const newConversationBtn = document.getElementById('newConversationBtn');
   const conversationSelect = document.getElementById('conversationSelect');
+
+// Ad display toggle state
+let adsEnabled = true;
+
+// Get the toggle button
+const adToggleBtn = document.getElementById('adToggleBtn');
+
+// Function to update button appearance
+function updateAdToggleBtn() {
+  if (adsEnabled) {
+    adToggleBtn.classList.remove('bg-red-100', 'text-red-900', 'border-red-200');
+    adToggleBtn.classList.add('bg-green-100', 'text-green-900', 'border-green-200');
+  } else {
+    adToggleBtn.classList.remove('bg-green-100', 'text-green-900', 'border-green-200');
+    adToggleBtn.classList.add('bg-red-100', 'text-red-900', 'border-red-200');
+  }
+}
+
+// Toggle ads on click
+adToggleBtn.addEventListener('click', function() {
+  adsEnabled = !adsEnabled;
+  updateAdToggleBtn();
+  renderChatHistory(); // Re-render to show/hide ad bubbles
+});
+
+// Initial state
+updateAdToggleBtn();
+
 
 function showToast(message) {
   const toast = document.getElementById('toast');
@@ -233,7 +337,7 @@ function renderConversationList() {
     return div.innerHTML;
   }
 
- function renderChatHistory() {
+function renderChatHistory() {
   chatHistory.innerHTML = '';
   if (!activeConversationId || !conversations[activeConversationId]) {
     chatHistory.innerHTML = '<p class="text-gray-500 italic">No conversation selected.</p>';
@@ -250,25 +354,50 @@ function renderConversationList() {
       : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
 
     if (msg.role === 'assistant') {
-      // Add LLM icon, response, and copy button
       bubble.innerHTML = `
         <img src="ai.gif" alt="Bot" class="inline h-5 w-5 mr-2 align-middle" />
         <span class="align-middle">${escapeHtml(msg.content)}</span>
         <button class="copy-bubble-btn" data-idx="${idx}" title="Copy to clipboard"
           style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;font-size:1.15em;vertical-align:middle;text-align: left;">
-⧉
+          ⧉
         </button>
       `;
+      div.appendChild(bubble);
+      chatHistory.appendChild(div);
+
+      // === Insert ad bubble only if ads are enabled ===
+      if (adsEnabled) {
+        let prevUser = null;
+        for (let j = idx - 1; j >= 0; j--) {
+          if (msgs[j].role === 'user') { prevUser = msgs[j].content; break; }
+        }
+        if (prevUser) {
+          const adDiv = document.createElement('div');
+          adDiv.className = "ad-bubble";
+          adDiv.innerHTML = "Loading relevant offer...";
+          chatHistory.appendChild(adDiv);
+
+          fetchGumGumAd(prevUser).then(ad => {
+            adDiv.innerHTML = `
+              ${ad.image ? `<img src="${ad.image}" alt="Ad">` : ""}
+              <div><strong>${escapeHtml(ad.title)}</strong></div>
+              <div>${escapeHtml(ad.description)}</div>
+              <a href="${ad.url}" target="_blank" onclick="window.open('${ad.url}','adpopup','width=600,height=400');return false;">
+                Learn more &raquo;
+              </a>
+            `;
+          });
+        }
+      }
     } else {
       bubble.textContent = msg.content;
+      div.appendChild(bubble);
+      chatHistory.appendChild(div);
     }
-
-    div.appendChild(bubble);
-    chatHistory.appendChild(div);
   });
   chatHistory.scrollTop = chatHistory.scrollHeight;
 
-  // Add click event listeners for all copy buttons
+  // Copy button logic as before...
   document.querySelectorAll('.copy-bubble-btn').forEach(btn => {
     btn.onclick = function() {
       const idx = parseInt(this.getAttribute('data-idx'));
@@ -280,6 +409,7 @@ function renderConversationList() {
     };
   });
 }
+
 
   // --- Conversation logic ---
   function createNewConversation() {
@@ -326,7 +456,7 @@ function renderConversationList() {
     window.open(
       url,
       'GoogleSearchPopup',
-      'height=400,width=400,left=100,top=100,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
+      'height=450,width=675, left=325,top=150,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
     );
     input.value = ''; // <-- This clears the search box!
   }
@@ -387,6 +517,8 @@ function renderConversationList() {
       return;
     }
 
+document.getElementById('googleSearchInput').value = message;
+
     // Append user message
     conversations[activeConversationId].messages.push({ role: 'user', content: message });
     renderChatHistory();
@@ -417,6 +549,8 @@ function renderConversationList() {
       chatForm.requestSubmit();
     }
   });
+
+
 
   // --- Initialization ---
   function init() {
