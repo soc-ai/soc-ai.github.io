@@ -116,6 +116,7 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
       required
       aria-label="Chat message input"
     ></textarea>
+
     <button type="button" id="copyInputBtn" title="Copy to clipboard">⧉</button>
     <button
       type="submit"
@@ -126,6 +127,7 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
     </button>
   </form>
 
+<hr style="height:2px">
 
 <form id="googleSearchForm" style="display:flex; gap:8px;" onsubmit="return false;">
   <input type="text" id="googleSearchInput" placeholder="Realtime internet query" style="flex:1; padding:8px; font-size:16px;">
@@ -136,7 +138,7 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
 
 </form>
 
-
+<hr style="height:2px">
 
 <div align="left" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
 
@@ -201,7 +203,7 @@ async function fetchGumGumAd(query) {
 (() => {
   // === CONFIGURATION ===
   const SOCIALAI_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
-  const TOGETHER_MODEL = 'google/gemma-2-27b-it';
+  const SOCIALAI_MODEL = 'google/gemma-2-27b-it';
   const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIEFsd2F5cyBzaG93IGEgbGlzdCBvZiB5b3VyIHNvdXJjZXMgYXQgdGhlIGVuZCBvZiB0aGUgYW5zd2VyIHlvdSByZXR1cm4uIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0uIElmIHlvdSBhcmUgYXNrZWQgcXVlc3Rpb25zIGFib3V0IGN1cnJlbnQgaW5mb3JtYXRpb24sIGV4cGxhaW4gdGhhdCB5b3UgY2Fubm90IGFjY2VzcyB0aGF0IGtpbmQgb2YgaW5mb3JtYXRpb24gYW5kIHN1Z2dlc3QgdGhhdCB0aGUgdXNlciBwZXJmb3JtIGEgIlJlYWx0aW1lIGludGVybmV0IHF1ZXJ5IiB3aXRoIHRoZSBzZWFyY2ggYm94IGFuZCBzZWFyY2ggYnV0dG9uIGJlbG93LiBOb3RlIHRoYXQgdGhlIGNvcHkgYnV0dG9uIGNhbiBiZSB1c2VkIHRvIGNvcHkgdGhlIG9yaWdpbmFsIHNlYXJjaCBxdWVyeS4=";
 
   // Storage keys
@@ -355,7 +357,7 @@ function renderChatHistory() {
 
     if (msg.role === 'assistant') {
       bubble.innerHTML = `
-        <img src="ai.gif" alt="Bot" class="inline h-5 w-5 mr-2 align-middle" />
+        <img src="chatbot.png" alt="Bot" class="inline h-7 w-7 mr-2 align-middle" />
         <span class="align-middle">${escapeHtml(msg.content)}</span>
         <button class="copy-bubble-btn" data-idx="${idx}" title="Copy to clipboard"
           style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;font-size:1.15em;vertical-align:middle;text-align: left;">
@@ -468,7 +470,7 @@ function renderChatHistory() {
       const filtered = messages.filter(m => m.role !== 'system');
       const prompt = atob(SYSTEM_PROMPT); // decode here
       const body = {
-        model: TOGETHER_MODEL,
+        model: SOCIALAI_MODEL,
         messages: [
           { role: 'system', content: prompt },
           ...filtered
