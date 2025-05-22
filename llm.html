@@ -357,7 +357,7 @@ function renderChatHistory() {
 
     if (msg.role === 'assistant') {
       bubble.innerHTML = `
-        <img src="chatbot.png" alt="Bot" class="inline h-7 w-7 mr-2 align-middle" />
+        <img src="bot.png" alt="Bot" class="inline h-7 w-7 mr-2 align-middle" />
         <span class="align-middle">${escapeHtml(msg.content)}</span>
         <button class="copy-bubble-btn" data-idx="${idx}" title="Copy to clipboard"
           style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;font-size:1.15em;vertical-align:middle;text-align: left;">
