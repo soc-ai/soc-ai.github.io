@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,20 +23,26 @@
     background-color: #a0aec0;
     border-radius: 4px;
   }
-  #toast {
-    display: none;
-    position: fixed;
-    bottom: 30px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: #222;
-    color: #fff;
-    padding: 12px 24px;
-    border-radius: 6px;
-    font-size: 1em;
-    z-index: 10000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-  }
+ #toast {
+  display: none;
+  position: fixed;
+  top: 30px;                 /* Distance from the top of the viewport */
+  left: 50%;                 /* Center horizontally */
+  transform: translateX(-50%);
+  z-index: 10000;
+  background: #2563eb;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  max-width: 400px;
+  min-width: 180px;
+  word-break: break-word;
+  white-space: normal;
+  text-align: center;        /* Optional: center the text */
+}
+
 
 .ad-bubble {
   background: #d1fae5; /* Tailwind's green-100 */
@@ -112,7 +119,7 @@
       id="chatInput"
       rows="1"
       placeholder="Ask Social AI anything ... [soc-ai llm 3.40.5]"
-class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black"
+class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none focus:ring-2 focus:ring-black; font-size:16px;"
       required
       aria-label="Chat message input"
     ></textarea>
@@ -135,12 +142,19 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
       ➣
   </button>
 
+</form>
 
+<form id="agentPromptForm" style="display:flex; gap:8px; margin-top:4px; margin-bottom:2px" onsubmit="return false;">
+  <input type="text" id="agentPromptInput" placeholder="Set your Agent Alert" style="flex:1; padding:8px; font-size:16px;">
+  <button type="button" id="agentPromptBtn" style="padding:8px 16px; font-size:16px;" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 transition">
+      ➣
+  </button>
 </form>
 
 <hr style="height:2px">
 
-<div align="left" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
+
+<div  align="left" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
 
 
 
@@ -151,7 +165,7 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
   <button id="toggleFollowupDropdown" type="button"
     class="bg-black text-white px-3 py-1 rounded hover:bg-gray-900 transition font-medium"
 
-    style="margin-bottom:4px;">
+    style="margin-bottom:1px;">
     Follow-up Questions ▼
   </button>
 
@@ -173,6 +187,65 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
 <div id="toast"></div>
 
 <script>
+
+// 1. Predefined agent responses (edit as desired)
+const agentResponses = [
+
+  "New research paper on AI ethics.",
+  "Update: Stock prices for AI companies have changed.",
+  "Agent discovered a trending topic: AI in healthcare.",
+  "New open-source LLM released.",
+  "Your monitored topic has a new blog post.",
+  "Recent breakthrough in AI image generation.",
+  "AI-powered app featured in major tech news."
+];
+
+// 2. Store the current agent prompt
+let currentAgentPrompt = "";
+
+// 3. Toast display function
+const agentMessageUrls = {
+  "Agent found a new research paper on AI ethics.": "https://arxiv.org/abs/1234.5678",
+  "Agent alert: New open-source LLM released.": "https://huggingface.co/models",
+  // ...add more as needed
+};
+
+function showAgentToast(message) {
+  const url = agentMessageUrls[message] || "https://andisearch.com";
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<strong>——— Agent Alert ———</strong><br>
+    <a href="#" id="agentToastLink" style="color:#000000; text-decoration:underline;">${message}</a>`;
+  toast.style.display = 'block';
+
+  document.getElementById('agentToastLink').onclick = function(e) {
+    e.preventDefault();
+    window.open(url, 'agentPopup', 'height=450,width=675, left=325,top=150,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no');
+  };
+
+  setTimeout(() => {
+    toast.style.display = 'none';
+  }, 8000);
+}
+
+
+// 4. Handle agent prompt submission
+document.getElementById('agentPromptBtn').addEventListener('click', function() {
+  const prompt = document.getElementById('agentPromptInput').value.trim();
+  if (prompt) {
+    currentAgentPrompt = prompt;
+    showAgentToast("");
+ //   document.getElementById('agentPromptInput').value = "";
+  }
+});
+
+// 5. Simulate background agent with interval
+setInterval(function() {
+  if (!currentAgentPrompt) return; // Only run if agent prompt is set
+  // Pick a random agent response
+  const msg = agentResponses[Math.floor(Math.random() * agentResponses.length)];
+  showAgentToast(msg);
+}, 20000); // Every 45 seconds (adjust as desired for demo)
+
 
 function extractRelevantKeywords(text) {
   // Use compromise to extract all nouns (common, proper, plural, etc.)
@@ -254,7 +327,7 @@ function showToast(message) {
   clearTimeout(showToast._timeout);
   showToast._timeout = setTimeout(() => {
     toast.style.display = 'none';
-  }, 1400);
+  }, 25000);
 }
 
 
@@ -384,7 +457,7 @@ function renderChatHistory() {
               ${ad.image ? `<img src="${ad.image}" alt="Ad">` : ""}
               <div><strong>${escapeHtml(ad.title)}</strong></div>
               <div>${escapeHtml(ad.description)}</div>
-              <a href="${ad.url}" target="_blank" onclick="window.open('${ad.url}','adpopup','width=600,height=400');return false;">
+              <a href="${ad.url}" target="_blank" onclick="window.open('${ad.url}','adpopup','height=450,width=675, left=325,top=150,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no');return false;">
                 Learn more &raquo;
               </a>
             `;
@@ -639,6 +712,10 @@ followupList.addEventListener('click', function(e) {
   z-index: 10000;
   box-shadow: 0 2px 8px rgba(0,0,0,0.15);
 "></div>
+
+<div id="toast" style="display:none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
+background: #2196f3; color: #fff; padding: 14px 28px; border-radius: 6px; font-size: 1em; z-index: 10000;
+box-shadow: 0 2px 8px rgba(0,0,0,0.15); min-width: 220px; text-align: center;"></div>
 
 
 </body>
