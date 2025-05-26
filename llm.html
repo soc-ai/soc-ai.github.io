@@ -213,7 +213,7 @@ const agentMessageUrls = {
 function showAgentToast(message) {
   const url = agentMessageUrls[message] || "https://andisearch.com";
   const toast = document.getElementById('toast');
-  toast.innerHTML = `<strong>——— Agent Alert ———</strong><br>
+  toast.innerHTML = `<strong>— Agent Alert —</strong><br>
     <a href="#" id="agentToastLink" style="color:#000000; text-decoration:underline;">${message}</a>`;
   toast.style.display = 'block';
 
