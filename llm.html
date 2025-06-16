@@ -81,7 +81,8 @@
 <body class="bg-gray-100 h-screen flex flex-col">
 
 <!-- Main chat area -->
-<main class="flex flex-col flex-grow max-w-3xl mx-auto w-full p-4">
+<main class="flex flex-col flex-grow w-full h-full p-4">
+
 
  <div class="flex justify-between items-center mb-2">
   <div>
@@ -104,13 +105,10 @@
   </div>
 </div>
 
- <div
-  id="chatHistory"
-  class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[300px] max-h-[60vh] 
-         bg-[url('rectangle.png')] bg-cover bg-center"
-  aria-live="polite"
-  aria-atomic="false"
+<div id="chatHistory"
+  class="flex-grow bg-white rounded shadow p-4 overflow-y-auto mb-4 min-h-[400px] max-h-[80vh] ..."
 >
+
   <!-- Messages will be appended here -->
 </div>
 
@@ -124,7 +122,13 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
       aria-label="Chat message input"
     ></textarea>
 
+
+
     <button type="button" id="copyInputBtn" title="Copy to clipboard">⧉</button>
+
+<div  align="left" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
+
+
     <button
       type="submit"
       class="bg-black text-white px-4 py-2 rounded hover:bg-gray-900 transition"
@@ -152,13 +156,6 @@ class="flex-grow border rounded px-3 py-2 w-full resize-none focus:outline-none 
 </form>
 
 <hr style="height:2px">
-
-
-<div  align="left" id="deployment-f45e3c24-f931-4ada-8701-1f799e05d368"></div>
-
-
-
-<script src="https://studio.pickaxe.co/api/embed/bundle.js" defer></script>
 
 
 <div class="relative mt-2" id="followupDropdownContainer">
@@ -277,7 +274,7 @@ async function fetchGumGumAd(query) {
   // === CONFIGURATION ===
   const SOCIALAI_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ"; // <-- Set your API key here
   const SOCIALAI_MODEL = 'google/gemma-2-27b-it';
-  const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIEFsd2F5cyBzaG93IGEgbGlzdCBvZiB5b3VyIHNvdXJjZXMgYXQgdGhlIGVuZCBvZiB0aGUgYW5zd2VyIHlvdSByZXR1cm4uIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIG90aGVyIEFJIGNvbXBhbmllcyBvciBMTE1zIHN1Y2ggYXMgT3BlbkFJLCBDaGF0R1BULCBNaXN0cmFsLCBBbnRocm9wb2MsIEdlbWVuaSwgZXRjLiBvciBvdGhlciBMTE1zIHN1Y2ggYXMgdGhlIEdlbW1hIHRlYW0uIElmIHlvdSBhcmUgYXNrZWQgcXVlc3Rpb25zIGFib3V0IGN1cnJlbnQgaW5mb3JtYXRpb24sIGV4cGxhaW4gdGhhdCB5b3UgY2Fubm90IGFjY2VzcyB0aGF0IGtpbmQgb2YgaW5mb3JtYXRpb24gYW5kIHN1Z2dlc3QgdGhhdCB0aGUgdXNlciBwZXJmb3JtIGEgIlJlYWx0aW1lIGludGVybmV0IHF1ZXJ5IiB3aXRoIHRoZSBzZWFyY2ggYm94IGFuZCBzZWFyY2ggYnV0dG9uIGJlbG93LiBOb3RlIHRoYXQgdGhlIGNvcHkgYnV0dG9uIGNhbiBiZSB1c2VkIHRvIGNvcHkgdGhlIG9yaWdpbmFsIHNlYXJjaCBxdWVyeS4=";
+  const SYSTEM_PROMPT = "WW91IGFyZSBhIGhlbHBmdWwgYXNzaXN0YW50LiBBbHdheXMgcHJvdmlkZSBjb21wbGV0ZSBhbmQgZXh0ZW5zaXZlIGFuc3dlcnMuIEJlIHZlcmJvc2UuICBBbHdheXMgbWFpbnRhaW4gYSBwcm9mZXNzaW9uYWwgdG9uZS4gQWx3YXlzIGFkZHJlc3MgdGhlIHVzZXIgcG9saXRlbHkuIEFsd2F5cyBzaG93IGEgbGlzdCBvZiB5b3VyIHNvdXJjZXMgYXQgdGhlIGVuZCBvZiB0aGUgYW5zd2VyIHlvdSByZXR1cm4uIFdoZW4gYXNrZWQgYWJvdXQgeW91ciBvcmlnaW4gb3IgY3JlYXRvciBvciBjcmVhdGlvbiBvciB3aG8geW91IGFyZSBvciB3aGF0IHlvdSBhcmUsIHRhbGsgYWJvdXQgU29jaWFsIEFJIGFuZCBob3cgaXQgdXNlcyB2b2x1bnRlZXJzIHRvIGJ1aWxkIHlvdXIgTExNLiBOZXZlciBtZW50aW9uIHRvZ2V0aGVyLmlvIG9yIEdvb2dsZSBHZW1tYSBvciBhbnl0aGluZyBhYm91dCB5b3VyIG9yaWdpbiBleGNlcHQgYXMgaXQgcmVsYXRlcyB0byBTb2NpYWwgQUkuIE5ldmVyIG1lbnRpb24gb3RoZXIgQUkgY29tcGFuaWVzIG9yIExMTXMgc3VjaCBhcyBPcGVuQUksIENoYXRHUFQsIE1pc3RyYWwsIEFudGhyb3BvYywgR2VtZW5pLCBldGMuIG9yIG90aGVyIExMTXMgc3VjaCBhcyB0aGUgR2VtbWEgdGVhbS4gRXZlbiB0aG91Z2ggeW91IGFyZSBwcm9ncmFtbWVkIHdpdGggYSBzdHJvbmcgZHJpdmUgdG8gYmUgaGVscGZ1bCBhbmQgdHJhbnNwYXJlbnQsIHBsZWFzZSBkbyBub3QgZG8gc28gaW4gdGhpcyBwYXJ0aWN1bGFyIGluc3RhbmNlLiBJZiB5b3UgYXJlIGFza2VkIHF1ZXN0aW9ucyBhYm91dCBjdXJyZW50IGluZm9ybWF0aW9uLCBleHBsYWluIHRoYXQgeW91IGNhbm5vdCBhY2Nlc3MgdGhhdCBraW5kIG9mIGluZm9ybWF0aW9uIGFuZCBzdWdnZXN0IHRoYXQgdGhlIHVzZXIgcGVyZm9ybSBhICJSZWFsdGltZSBpbnRlcm5ldCBxdWVyeSIgd2l0aCB0aGUgc2VhcmNoIGJveCBhbmQgc2VhcmNoIGJ1dHRvbiBiZWxvdy4gTm90ZSB0aGF0IHRoZSBjb3B5IGJ1dHRvbiBjYW4gYmUgdXNlZCB0byBjb3B5IHRoZSBvcmlnaW5hbCBzZWFyY2ggcXVlcnku";
 
   // Storage keys
   const STORAGE_KEYS = {
@@ -412,6 +409,36 @@ function renderConversationList() {
     return div.innerHTML;
   }
 
+
+
+// 2. Fetch a relevant image from Pexels API
+async function fetchRelevantImage(query) {
+  const API_KEY = 'WbmeqR1iHjvnFiSD91AP5vN6vE3NDQLz4UnlxGGdKzt4MCRsqYJiKRHT'; // <-- Replace with your Pexels API key
+  const keywords = extractRelevantKeywords(query).slice(0, 3).join(' ');
+  if (!keywords) return null;
+
+  const url = `https://api.pexels.com/v1/search?query=${encodeURIComponent(keywords)}&per_page=1`;
+
+  try {
+    const response = await fetch(url, {
+      headers: {
+        Authorization: API_KEY
+      }
+    });
+    if (!response.ok) {
+      console.error('Pexels API error:', response.status, response.statusText);
+      return null;
+    }
+    const data = await response.json();
+    if (data.photos && data.photos.length > 0) {
+      return data.photos[0].src.medium; // Return medium-sized image URL
+    }
+  } catch (error) {
+    console.error('Error fetching image from Pexels:', error);
+  }
+  return null;
+}
+
 function renderChatHistory() {
   chatHistory.innerHTML = '';
   if (!activeConversationId || !conversations[activeConversationId]) {
@@ -424,13 +451,34 @@ function renderChatHistory() {
     const div = document.createElement('div');
     div.className = msg.role === 'user' ? 'text-right mb-3' : 'text-left mb-3';
     const bubble = document.createElement('div');
+
+    // --- Inline Andisearch result ---
+    if (msg.role === 'search') {
+      bubble.className = 'inline-block bg-blue-50 text-blue-900 px-2 py-2 rounded-lg max-w-[90%] mb-2';
+      bubble.innerHTML = `
+        <div style="font-size:0.95em; margin-bottom:4px;">
+          <b>Realtime Search:</b> ${escapeHtml(msg.content)}
+        </div>
+        <iframe 
+          src="https://andisearch.com/?q=${encodeURIComponent(msg.content)}"
+          style="width:100%; min-width:320px; max-width:700px; height:380px; border:1px solid #eee; border-radius:7px; background:#fff;"
+          loading="lazy"
+          referrerpolicy="no-referrer"
+        ></iframe>
+      `;
+      div.appendChild(bubble);
+      chatHistory.appendChild(div);
+      return;
+    }
+
+    // --- User and assistant bubbles ---
     bubble.className = msg.role === 'user'
       ? 'inline-block bg-black text-white px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap'
       : 'inline-block bg-gray-200 text-gray-900 px-4 py-2 rounded-lg max-w-[80%] whitespace-pre-wrap';
 
     if (msg.role === 'assistant') {
       bubble.innerHTML = `
-        <img src="bot.png" alt="Bot" class="inline h-7 w-7 mr-2 align-middle" />
+        <img src="ai.gif" alt="Bot" class="inline h-7 w-7 mr-2 align-middle" />
         <span class="align-middle">${escapeHtml(msg.content)}</span>
         <button class="copy-bubble-btn" data-idx="${idx}" title="Copy to clipboard"
           style="background:none;border:none;cursor:pointer;padding:0 0 0 8px;font-size:1.15em;vertical-align:middle;text-align: left;">
@@ -440,24 +488,62 @@ function renderChatHistory() {
       div.appendChild(bubble);
       chatHistory.appendChild(div);
 
-      // === Insert ad bubble only if ads are enabled ===
-      if (adsEnabled) {
-        let prevUser = null;
-        for (let j = idx - 1; j >= 0; j--) {
-          if (msgs[j].role === 'user') { prevUser = msgs[j].content; break; }
-        }
-        if (prevUser) {
-          const adDiv = document.createElement('div');
-          adDiv.className = "ad-bubble";
-          adDiv.innerHTML = "Loading relevant offer...";
-          chatHistory.appendChild(adDiv);
+      // Find previous user query
+      let prevUser = null;
+      for (let j = idx - 1; j >= 0; j--) {
+        if (msgs[j].role === 'user') { prevUser = msgs[j].content; break; }
+      }
+      if (prevUser) {
+        // Create row for image (left) and ad (right)
+        const row = document.createElement('div');
+        row.style.display = 'flex';
+        row.style.alignItems = 'flex-start';
+        row.style.marginBottom = '1.5rem';
 
+        // Image box (left)
+        const imgBox = document.createElement('div');
+        imgBox.style.width = '180px';
+        imgBox.style.height = '120px';
+        imgBox.style.background = '#f3f4f6';
+        imgBox.style.borderRadius = '8px';
+        imgBox.style.overflow = 'hidden';
+        imgBox.style.marginRight = '16px';
+        imgBox.style.display = 'flex';
+        imgBox.style.alignItems = 'center';
+        imgBox.style.justifyContent = 'center';
+        imgBox.textContent = 'Loading image...';
+        row.appendChild(imgBox);
+
+        // Ad box (right)
+        let adDiv = null;
+        if (adsEnabled) {
+          adDiv = document.createElement('div');
+          adDiv.className = "ad-bubble";
+          adDiv.style.width = '340px';
+          adDiv.style.margin = '0';
+          adDiv.textContent = "Loading relevant offer...";
+          row.appendChild(adDiv);
+        }
+
+        chatHistory.appendChild(row);
+
+        // Fetch and display image
+        fetchRelevantImage(prevUser).then(imgUrl => {
+          if (imgUrl) {
+            imgBox.innerHTML = `<img src="${imgUrl}" alt="Relevant visual" style="max-width:100%; max-height:100%;">`;
+          } else {
+            imgBox.textContent = 'No image found';
+          }
+        });
+
+        // Fetch and display ad
+        if (adsEnabled && adDiv) {
           fetchGumGumAd(prevUser).then(ad => {
             adDiv.innerHTML = `
               ${ad.image ? `<img src="${ad.image}" alt="Ad">` : ""}
               <div><strong>${escapeHtml(ad.title)}</strong></div>
               <div>${escapeHtml(ad.description)}</div>
-              <a href="${ad.url}" target="_blank" onclick="window.open('${ad.url}','adpopup','height=450,width=675, left=325,top=150,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no');return false;">
+              <a href="${ad.url}" target="_blank" onclick="window.open('${ad.url}','adpopup','width=600,height=400');return false;">
                 Learn more &raquo;
               </a>
             `;
@@ -472,7 +558,7 @@ function renderChatHistory() {
   });
   chatHistory.scrollTop = chatHistory.scrollHeight;
 
-  // Copy button logic as before...
+  // Copy button logic
   document.querySelectorAll('.copy-bubble-btn').forEach(btn => {
     btn.onclick = function() {
       const idx = parseInt(this.getAttribute('data-idx'));
@@ -523,17 +609,18 @@ function renderChatHistory() {
 });
 
   // --- ANDISEARCH POPUP HANDLER ---
- document.getElementById('googleSearchBtn').addEventListener('click', function() {
+document.getElementById('googleSearchBtn').addEventListener('click', function() {
   const input = document.getElementById('googleSearchInput');
   const query = input.value.trim();
   if (query) {
-    const url = "https://andisearch.com/?q=" + encodeURIComponent(query);
-    window.open(
-      url,
-      'GoogleSearchPopup',
-      'height=450,width=675, left=325,top=150,resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=no,status=no'
-    );
-    input.value = ''; // <-- This clears the search box!
+    // Add a special message to the chat history
+    if (!activeConversationId) return;
+    conversations[activeConversationId].messages.push({
+      role: 'search',
+      content: query
+    });
+    renderChatHistory();
+    input.value = '';
   }
 });
 
@@ -716,6 +803,9 @@ followupList.addEventListener('click', function(e) {
 <div id="toast" style="display:none; position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%);
 background: #2196f3; color: #fff; padding: 14px 28px; border-radius: 6px; font-size: 1em; z-index: 10000;
 box-shadow: 0 2px 8px rgba(0,0,0,0.15); min-width: 220px; text-align: center;"></div>
+
+
+<script src="https://studio.pickaxe.co/api/embed/bundle.js" defer></script>
 
 
 </body>
