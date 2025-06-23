@@ -86,7 +86,7 @@
 
  <div class="flex justify-between items-center mb-2">
   <div>
-    <img id="aiLogo" src="ai.gif" alt="Social AI" class="h-8 w-auto" />
+    <img id="aiLogo" src="logo3.png" alt="Social AI" class="h-8 w-auto" />
   </div>
   <div class="flex items-center gap-2">
    
@@ -113,9 +113,6 @@
 </div>
 
   <form id="chatForm" class="flex gap-2">
-
-<img id="statusImg" src="ai.gif" alt="Status" class="h-8 w-8 mr-2 transition-all duration-200" />
-
     <textarea
       id="chatInput"
       rows="1"
@@ -337,7 +334,7 @@ function showToast(message) {
   }
   function showLogo() {
     const logo = document.getElementById('aiLogo');
-    if (logo) logo.src = 'ai.gif';
+    if (logo) logo.src = 'logo3.png';
   }
 
   // In-memory state
@@ -714,41 +711,6 @@ document.getElementById('googleSearchInput').value = message;
       chatForm.requestSubmit();
     }
   });
-
-const statusImg = document.getElementById('statusImg');
-
-chatForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  const message = chatInput.value.trim();
-  if (!message) return;
-  if (!activeConversationId) {
-    alert('Please create a new conversation first.');
-    return;
-  }
-
-  // Show spinner
-  statusImg.src = 'spinner.gif';
-
-  // Append user message
-  conversations[activeConversationId].messages.push({ role: 'user', content: message });
-  renderChatHistory();
-  chatInput.value = '';
-  chatInput.disabled = true;
-  saveState();
-
-  // Get assistant response
-  const response = await sendToTogetherApi(conversations[activeConversationId].messages);
-  if (response !== null) {
-    conversations[activeConversationId].messages.push({ role: 'assistant', content: response });
-    renderChatHistory();
-    saveState();
-  }
-  chatInput.disabled = false;
-  chatInput.focus();
-
-  // Restore AI face
-  statusImg.src = 'ai.gif';
-});
 
 
 
