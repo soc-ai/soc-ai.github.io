@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Customer/Competitor Analyzer</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <!-- Fonts and basic styles from CDN -->
+  <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f7f8fa;
+      margin: 0;
+      color: #1a1a1a;
+    }
+    header {
+      background: #2c3e50;
+      color: #fff;
+      padding: 1rem 2rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 2px 6px #0001;
+    }
+    .title {
+      font-size: 1.6rem;
+      font-weight: 600;
+      letter-spacing: 1px;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+    }
+    select, button {
+      font-size: 1rem;
+      padding: 0.4rem 0.8rem;
+      border-radius: 4px;
+      border: 1px solid #c0c0c0;
+      margin-left: 0.3rem;
+      margin-right: 0.3rem;
+    }
+    button#helpBtn, button#newAnalysisBtn {
+      background: #3578e5;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      font-weight: 500;
+      transition: background 0.2s;
+    }
+    button#helpBtn:hover, button#newAnalysisBtn:hover {
+      background: #214a99;
+    }
+    #chat {
+      margin: 1.2rem auto;
+      max-width: 680px;
+      background: #fff;
+      padding: 1.2rem 2rem 2.5rem 2rem;
+      border-radius: 14px;
+      min-height: 540px;
+      box-shadow: 0 4px 16px #0002;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      gap: 1.3rem;
+    }
+    .chat-bubble {
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      margin-bottom: 0.4rem;
+      position: relative;
+    }
+    .chat-bubble.user {
+      flex-direction: row-reverse;
+    }
+    .chat-img {
+      width: 40px; min-width: 40px; height: 40px;
+      background: #eee;
+      border-radius: 50%;
+      display: flex;
+      align-items: center; justify-content: center;
+      font-size: 1.4rem;
+      overflow: hidden;
+    }
+    .chat-img img {
+      width: 100%; height: 100%; object-fit: cover;
+    }
+    .chat-content {
+      background: #e9f0fb;
+      padding: 1rem 1.4rem 1rem 1.1rem;
+      border-radius: 10px;
+      min-width: 60px;
+      max-width: 480px;
+      white-space: pre-wrap;
+      font-size: 1.07rem;
+      position: relative;
+      word-break: break-word;
+    }
+    .chat-bubble.user .chat-content {
+      background: #dde7ee;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 7px; right: 7px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      font-size: 1.15rem;
+      color: #1877f2;
+      opacity: 0.8;
+      transition: opacity 0.15s;
+    }
+    .copy-btn:hover { opacity: 1; }
+    .chat-timestamp {
+      font-size: 0.82rem;
+      color: #69788c;
+      margin-top: 2px;
+      margin-left: 49px;
+    }
+    #inputBoxArea {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: auto;
+      background: #fff;
+      border-radius: 8px;
+      padding-top: 0.5rem;
+    }
+    #inputPrompt {
+      flex: 1;
+      resize: none;
+      font-size: 1.08rem;
+      border-radius: 7px;
+      border: 1px solid #cdd5e0;
+      padding: 0.7rem;
+    }
+    #sendBtn {
+      border: none;
+      background: #2e6ae6;
+      color: #fff;
+      font-weight: 600;
+      border-radius: 6px;
+      font-size: 1.08rem;
+      padding: 0.7rem 1.4rem;
+      margin-left: 0.2rem;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    #sendBtn:disabled { color: #aaa; background: #e2e7ef; cursor: not-allowed;}
+    .bottom-btns {
+      display: flex;
+      gap: 2.2rem;
+      margin-top: 1.3rem;
+      justify-content: center;
+      align-items: center;
+    }
+    .big-action-btns {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.4rem;
+    }
+    .main-action-btn {
+      font-weight: 600;
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 1.2rem 2.4rem;
+      font-size: 1.18rem;
+      margin-bottom: 0.4rem;
+      background: #1877f2;
+      box-shadow: 0 2px 8px #1877f229;
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .main-action-btn:hover {
+      background: #094aaf;
+    }
+    .smallbtn-label {
+      color: #414d56;
+      font-size: 0.98rem;
+      margin-top: 3px;
+      text-align: center;
+      font-weight: 500;
+    }
+    .prompt-edit-label {
+      margin: 1rem 0 0.2rem 0;
+      font-size: 1.01rem;color: #546070;
+      font-weight: 600;
+    }
+    textarea#systemPromptEdit {
+      width: 100%; min-height: 70px; border-radius: 7px;
+      border: 1px solid #adc6e0;
+      font-size: 1.0rem; padding: 0.7rem;
+      margin-bottom: 0.6rem;
+      margin-top: 0.1rem;
+    }
+    /* Toast */
+    .toast {
+      display: none;
+      position: fixed;
+      top: 40px;
+      left: 50%;
+      transform: translateX(-50%);
+      padding: 1rem 2rem;
+      background: #353a50;
+      color: #fff;
+      border-radius: 11px;
+      font-weight: 600;
+      font-size: 1.03rem;
+      z-index: 9999;
+      opacity: 0.96;
+      box-shadow: 0 2px 10px #2225;
+      pointer-events: none;
+      transition: opacity 0.25s;
+    }
+    .toast.show { display: block; }
+    /* Popup modal */
+    #modalPopup {
+      display: none;
+      position: fixed;
+      z-index: 10020;
+      left:0; top:0; width:100vw; height:100vh;
+      background: #0006;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-content {
+      background: #fff;
+      border-radius: 8px;
+      padding: 2rem 2.2rem;
+      max-width: 480px;
+      width: 90%;
+      min-width: 240px;
+      position: relative;
+      box-shadow: 0 2px 22px #0004;
+    }
+    .modal-close {
+      position: absolute;
+      right: 18px;
+      top: 10px;
+      font-size: 1.7rem;
+      color: #3a4557;
+      background: none;
+      border: none;
+      cursor: pointer;
+      line-height: 1;
+    }
+    @media (max-width:540px) {
+      header { flex-direction: column; align-items: flex-start;gap:1rem;}
+      #chat { max-width: 98vw; padding:0.8rem 0.6rem 2rem 0.8rem;}
+      .main-action-btn { width:93vw; padding:1rem 0;}
+      .chat-content { max-width:88vw;}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <span class="title">Customer/Competitor Analyzer</span>
+    <div class="top-actions">
+      <button id="helpBtn">Help</button>
+      <select id="priorsDropdown"></select>
+      <button id="newAnalysisBtn">New Analysis</button>
+    </div>
+  </header>
+  <main>
+    <div style="max-width:750px; margin: 0 auto;">
+      <div id="chat">
+<img src="logo3.png" style="width:150px;height:40px;"  alt="SocialAI">
+      
+        <textarea id="systemPromptEdit"></textarea>
+      </div>
+      <div class="bottom-btns">
+        <div class="big-action-btns">
+          <button class="main-action-btn" id="customerAnalysisBtn">Customer Analysis</button>
+          <span class="smallbtn-label"></span>
+        </div>
+        <div class="big-action-btns">
+          <button class="main-action-btn" id="competitorAnalysisBtn">Competitor Analysis</button>
+          <span class="smallbtn-label"></span>
+        </div>
+      </div>
+      <form id="inputBoxArea">
+        <textarea id="inputPrompt" rows="2" placeholder="Type your analysis question or instruction..."></textarea>
+        <button type="submit" id="sendBtn">Send</button>
+      </form>
+    </div>
+  </main>
+  <div class="toast" id="toast"></div>
+  <!-- Modal Popup (Help/Analysis prompt) -->
+  <div id="modalPopup">
+    <div class="modal-content" id="modalContent">
+      <button class="modal-close" onclick="closeModal()">&times;</button>
+      <div id="modalInnerContent"></div>
+    </div>
+  </div>
+  <script>
+    // === CONFIGURABLE SYSTEM PROMPT ===
+    const DEFAULT_SYSTEM_PROMPT =  `💬 Prompt to the Analyzer (you can modify this):\n
+You are an expert business analyst specializing in laboratory sciences and industrial services.\n
+Purpose: To analyze the company "ALS Global" and compare its capabilities with current or potential customers (for customer fit and solution suggestions) and with competitors (to identify competitive advantages).\n
+Instructions for responding:\n
+- Analyze provided information about ALS Global, the customer/prospect, or competitor.\n
+- Show sources for any external facts where possible, or explain reasoning if none.\n
+- Structure all answers in clearly formatted bulleted lists, numbered lists, and outlines. Avoid paragraphs – use concise, scan-friendly points.\n
+- Present action items at end of response if applicable.\n\n
+(You may edit this prompt as needed.)`;
+
+    const CUSTOMER_ANALYSIS_PROMPT = `Analyze the following customer for potential matches with ALS Global's laboratory and testing services. Summarize the customer's business, likely service needs, and recommend sales approaches or service angles for ALS Global. Show sources where possible. Reply in bulleted/outlined form. Company info:\n\n`;
+    const COMPETITOR_ANALYSIS_PROMPT = `Analyze the following competitor to ALS Global. Summarize the competitor's business, service offerings, and highlight areas of overlap or difference with ALS Global. Suggest sales talking points for ALS Global. Show sources where possible. Reply in bulleted/outlined form. Company info:\n\n`;
+
+    // === TOGETHER.AI CONFIG ===
+    const TOGETHER_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ";
+    const TOGETHER_API_URL = "https://api.together.xyz/v1/chat/completions";
+    const TOGETHER_MODEL = "meta-llama/Llama-3-8b-chat-hf"; // change model as desired
+
+    // ========== MAIN UI/CHAT LOGIC ==========
+    let conversationId = "";
+    let conversations = {}; // { [id]: { messages: [...], updated: ts } }
+    let systemPrompt = DEFAULT_SYSTEM_PROMPT;
+    let isSending = false;
+
+    // ========== INIT ==========
+    function loadConversations() {
+      try {
+        const local = window.localStorage.getItem("alsg_conversations");
+        conversations = local ? JSON.parse(local) : {};
+      } catch { conversations = {}; }
+    }
+    function saveConversations() {
+      window.localStorage.setItem("alsg_conversations", JSON.stringify(conversations));
+    }
+    function setConversation(id) {
+      if (!conversations[id]) conversations[id] = { messages: [], updated: Date.now() };
+      conversationId = id;
+      renderPriors();
+      renderChat();
+    }
+    function renderPriors() {
+      const dropdown = document.getElementById('priorsDropdown');
+      dropdown.innerHTML = "";
+      const idsSorted = Object.keys(conversations).sort((a, b) => (conversations[b]?.updated || 0) - (conversations[a]?.updated || 0));
+      idsSorted.forEach(id => {
+        const opt = document.createElement('option');
+        opt.value = id; opt.text = id;
+        dropdown.appendChild(opt);
+      });
+      dropdown.value = conversationId;
+    }
+    // ========== CHAT UI RENDER ==========
+    function renderChat() {
+      const chat = document.getElementById('chat');
+      // Remove old bubbles except system prompt
+      [...chat.querySelectorAll('.chat-bubble,.chat-timestamp')].forEach(el => el.remove());
+      let msgs = (conversations[conversationId]?.messages || []);
+      msgs.forEach((m, i) => {
+        const bubble = document.createElement('div');
+        bubble.className = "chat-bubble" + (m.role==="user"?" user":"");
+        // Avatar
+        const img = document.createElement('div');
+        img.className = "chat-img";
+      
+img.innerHTML = `<img src="${m.role === "user"
+  ? "person1.jpg"
+  : "ai.png"}" alt="${m.role==="user"?"You":"AI"}">`;
+
+        bubble.appendChild(img);
+        // Message content
+        const cont = document.createElement('div');
+        cont.className = "chat-content";
+        cont.innerHTML = m.content
+            .replace(/^- /gm, '• ')
+            .replace(/\n/g, "<br>");
+        // Copy button only for assistant
+        if (m.role === "assistant") {
+          const cbtn = document.createElement('button');
+          cbtn.className = "copy-btn";
+          cbtn.innerText = "⧉";
+          cbtn.title = "Copy";
+          cbtn.onclick = () => {
+            copyToClipboard(m.content);
+            showToast("Copied!");
+          };
+          cont.appendChild(cbtn);
+        }
+        bubble.appendChild(cont);
+        chat.appendChild(bubble);
+
+        // Timestamp
+        const d = new Date(m.ts || (Date.now() - (msgs.length-i)*60000));
+        const ts = document.createElement('div');
+        ts.className = "chat-timestamp";
+        ts.textContent = d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit'}) +
+          (m.role === "user" ? " (You)" : " (AI)");
+        chat.appendChild(ts);
+      });
+      chat.scrollTop = chat.scrollHeight+300;
+      // Restore system prompt textarea
+      document.getElementById("systemPromptEdit").value = systemPrompt;
+    }
+    // ========== EVENT HANDLERS ==========
+    function setSystemPrompt(text) {
+      systemPrompt = text;
+      window.localStorage.setItem("alsg_system_prompt", systemPrompt);
+    }
+    window.onload = function() {
+      // System prompt
+      const localPrompt = window.localStorage.getItem("alsg_system_prompt");
+      if (localPrompt) systemPrompt = localPrompt;
+      document.getElementById("systemPromptEdit").value = systemPrompt;
+      document.getElementById("systemPromptEdit").addEventListener("blur", e => {
+        setSystemPrompt(e.target.value);
+      });
+      // Conversation
+      loadConversations();
+      let ids = Object.keys(conversations);
+      setConversation(ids[0] || "Analysis-1");
+
+      // Analysis create
+      document.getElementById("newAnalysisBtn").onclick = function() {
+        showModal(`<label>Enter Analysis ID:<br><input id="newCid" style="padding:0.4rem; font-size:1rem; border-radius:5px; margin-top:0.3rem;" maxlength="50"></label>
+        <button id="goNewCidBtn" style="display:inline;margin-left:0.7rem;padding:0.4rem 1.1rem;font-size:1rem;border-radius:4px;background:#3578e5;color:#fff;font-weight:600;border:none;">Create &amp; Switch</button>`);
+        setTimeout(()=>{
+          document.getElementById("newCid").focus();
+          document.getElementById("goNewCidBtn").onclick = function() {
+            let id = document.getElementById("newCid").value.trim() || "Analysis-" + (Object.keys(conversations).length+1);
+            setConversation(id);
+            closeModal();
+          };
+        },200);
+      };
+      // Prior selection
+      document.getElementById("priorsDropdown").onchange = function(e) {
+        setConversation(e.target.value);
+      };
+      // Help
+      document.getElementById("helpBtn").onclick = function() {
+        showModal(`<h2>Help: Customer/Competitor Analyzer</h2>
+<ul style="font-size:1rem;line-height:1.55;"><li>Create a new Analysis session using "New Analysis" and provide any identifier you want.</li>
+<li>Select past sessions via the "Priors" dropdown – chat history is stored per analysis.</li>
+<li>Edit (or reset) the system prompt above to adjust AI’s instructions/format.</li>
+<li>Use the "Customer Analysis" or "Competitor Analysis" buttons for focused prompts; you’ll be guided for input.</li>
+<li>Type or paste your own questions/instructions below.</li>
+<li>Click "⧉" to copy any AI answer; you'll get confirmation.</li>
+<li>All chats are stored in your browser only and stay on your device.</li></ul>
+`);
+      };
+      // Main input box
+      document.getElementById("inputBoxArea").onsubmit = async function(e) {
+        e.preventDefault();
+        let prompt = document.getElementById("inputPrompt").value.trim();
+        if (!prompt || isSending) return;
+        await submitUserPrompt(prompt);
+        document.getElementById("inputPrompt").value = "";
+      };
+      // Customer/Competitor Analysis buttons
+      document.getElementById("customerAnalysisBtn").onclick = function() {
+        analysisPromptPopup('customer');
+      };
+      document.getElementById("competitorAnalysisBtn").onclick = function() {
+        analysisPromptPopup('competitor');
+      };
+      // Restore chat
+      renderChat();
+    };
+
+    // ========== MODAL ==========
+    function showModal(html) {
+      document.getElementById("modalInnerContent").innerHTML = html;
+      document.getElementById("modalPopup").style.display = "flex";
+    }
+    function closeModal() {
+      document.getElementById("modalPopup").style.display = "none";
+    }
+    // ========== HANDLERS ==========
+    async function submitUserPrompt(prompt) {
+      appendMessage('user', prompt);
+      renderChat();
+      await sendToAI(prompt);
+    }
+    function appendMessage(role, content) {
+      let obj = { role, content, ts: Date.now() };
+      conversations[conversationId].messages.push(obj);
+      conversations[conversationId].updated = Date.now();
+      saveConversations();
+    }
+    // === AI REQUEST ===
+    async function sendToAI(userPrompt) {
+      isSending = true;
+      try {
+        let history = conversations[conversationId].messages;
+        // Only keep {role,content} for API (truncate history if huge for safety)
+        let simpleHistory = history.slice(-16).map(m => ({
+          role: m.role==='user'?'user':'assistant', content:m.content
+        }));
+        // Prepend system prompt
+        let messages = [
+          {role:"system",content:systemPrompt},
+          ...simpleHistory,
+          {role: "user", content: userPrompt}
+        ];
+        // Compose API request
+      
+const placeholderContent = `
+  <div style="display:flex; align-items:center; gap: 8px;">
+    <img src="spinner.gif" alt="Thinking" style="width:24px; height:24px;"/>
+    <span>Analyzing . . .</span>
+  </div>
+`;
+
+// Add placeholder bubble
+appendMessage('assistant', placeholderContent.trim());
+renderChat();
+
+       
+ let resp = await fetch(TOGETHER_API_URL, {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + TOGETHER_API_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: TOGETHER_MODEL,
+            messages: messages,
+            max_tokens: 1000,
+            temperature: 0.4
+          })
+        });
+        let data = await resp.json();
+        let ai_answer = ((data.choices && data.choices[0] && data.choices[0].message && data.choices[0].message.content) ? data.choices[0].message.content : "AI error or no response.");
+        // Replace placeholder
+
+  let idx = conversations[conversationId].messages.findIndex(m =>
+  m.role === "assistant" && m.content.trim() === placeholderContent.trim()
+);
+if (idx > -1) {
+  conversations[conversationId].messages[idx] = { role:"assistant", content: ai_answer, ts: Date.now() };
+} else {
+  // Fallback if not found, append new message
+  appendMessage('assistant', ai_answer);
+}
+saveConversations();
+renderChat();
+      } finally {
+        isSending = false;
+      }
+    }
+
+    // ========== ANALYSIS PROMPT POPUP ==========
+    function analysisPromptPopup(type) {
+      showModal(`<h3>${type === "customer" ? "Customer" : "Competitor"} Analysis</h3>
+        <label>Company name:<br>
+          <input id="analysisName" type="text" maxlength="80" style="width:93%;padding:0.4rem;font-size:1rem; border-radius:6px;" autofocus required>
+        </label>
+        <br>
+        <label>Location (optional):<br>
+          <input id="analysisLoc" type="text" maxlength="80" style="width:93%;padding:0.4rem;margin-bottom:0.3rem;font-size:1rem;border-radius:6px;">
+        </label>
+        <br>
+        <label>Other info (business details, context):<br>
+          <textarea id="analysisOther" rows="2" style="width:93%;padding:0.4rem;font-size:1rem; border-radius:6px;"></textarea>
+        </label>
+        <br>
+        <div style="margin:0.6rem 0 0.2rem 0;font-weight:500">Prompt to AI:<br>
+          <textarea id="promptTemplate" style="width:98%; min-height:48px; border-radius:7px;font-size:1rem;padding:0.3rem;margin-top:0.2rem;">${type === "customer"? CUSTOMER_ANALYSIS_PROMPT : COMPETITOR_ANALYSIS_PROMPT}</textarea>
+        </div>
+        <button style="margin-top:0.6rem;font-size:1.06rem;padding:0.5rem 1.5rem;border-radius:5px;background:#2e6ae6;color:#fff;font-weight:600;border:none;" id="doAnalysisBtn">Submit</button>
+      `);
+      setTimeout(()=>{
+        document.getElementById("doAnalysisBtn").onclick = async function() {
+          let cname = document.getElementById("analysisName").value.trim();
+          let loc = document.getElementById("analysisLoc").value.trim();
+          let more = document.getElementById("analysisOther").value.trim();
+          let template = document.getElementById("promptTemplate").value;
+          if (!cname) { showToast("Enter a company name"); return;}
+          let fullPrompt = template + `Name: ${cname}\n` +
+            (loc?(`Location: ${loc}\n`):"") +
+            (more?(`Other info: ${more}\n`):"");
+          closeModal();
+          await submitUserPrompt(fullPrompt);
+        };
+      },150);
+    }
+
+    // === UTIL ===
+    function showToast(msg) {
+      let toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.className = "toast show";
+      setTimeout(()=>{ toast.className="toast"; }, 1400);
+    }
+    function copyToClipboard(text) {
+      if (navigator.clipboard) {
+        navigator.clipboard.writeText(text);
+      } else {
+        // fallback
+        let txt = document.createElement('textarea');
+        txt.value = text;
+        document.body.appendChild(txt);
+        txt.select(); document.execCommand('copy');
+        document.body.removeChild(txt);
+      }
+    }
+  </script>
+</body>
+</html>
