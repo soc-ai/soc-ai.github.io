@@ -1,12 +1,39 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+ <!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+
   <meta charset="UTF-8">
   <title>Customer/Competitor Analyzer</title>
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <!-- Fonts and basic styles from CDN -->
   <link href="https://fonts.googleapis.com/css?family=Inter:400,600&display=swap" rel="stylesheet">
   <style>
+
+/* Place into <style> block */
+#powerOptionsMenu {
+  font-family: inherit;
+  margin-top:6px;
+  border:1px solid #e0e0e0;
+}
+.power-option {
+  padding: 0.9rem 1.3rem;
+  border-bottom: 1px solid #f3f3f3;
+  cursor: pointer;
+  font-size: 1.07rem;
+  color: #222;                /* Make options visible by default */
+  background: #fff;           /* Ensure light background */
+  transition: background 0.14s, color 0.14s;
+}
+
+.power-option:last-child { border-bottom:none;}
+.power-option:hover { background:#ffeaea; color:#b71c1c;}
+
+
+
     body {
       font-family: 'Inter', Arial, sans-serif;
       background: #f7f8fa;
@@ -258,6 +285,20 @@
   <header>
     <span class="title">Customer/Competitor Analyzer</span>
     <div class="top-actions">
+
+ <div id="powerOptionsWrapper" style="position:relative;">
+      <button id="powerOptionsBtn" style="background:#d32f2f;color:#fff;font-weight:700;border:none;padding:0.6rem 1.1rem;border-radius:6px;cursor:pointer;box-shadow:0 2px 6px #b71c1c1a;font-size:1rem;">Power Options ▼</button>
+      <div id="powerOptionsMenu" style="position:absolute;left:0;top:100%;display:none;background:#fff;min-width:240px;box-shadow:0 8px 32px #25252545;border-radius:8px;z-index:99;">
+        <div class="power-option" data-tool="strategic"   >Strategic Advice</div>
+        <div class="power-option" data-tool="swot"        >SWOT Analysis</div>
+        <div class="power-option" data-tool="proposal"    >Generate Proposal/Email</div>
+        <div class="power-option" data-tool="objection"   >Customer Objection Handler</div>
+        <div class="power-option" data-tool="export"      >Save/Exporting Full Analyses</div>
+        <div class="power-option" data-tool="examples"    >Example Prompt Library</div>
+      </div>
+    </div>
+
+
       <button id="helpBtn">Help</button>
       <select id="priorsDropdown"></select>
       <button id="newAnalysisBtn">New Analysis</button>
@@ -462,7 +503,114 @@ img.innerHTML = `<img src="${m.role === "user"
       };
       // Restore chat
       renderChat();
-    };
+  
+// In your JS in window.onload (before renderChat();), add:
+
+// Power Options dropdown logic
+const powerOptionsWrapper = document.getElementById('powerOptionsWrapper');
+const powerOptionsBtn = document.getElementById('powerOptionsBtn');
+const powerOptionsMenu = document.getElementById('powerOptionsMenu');
+
+// Dropdown toggle
+powerOptionsBtn.onclick = function(e) {
+  e.stopPropagation();
+  const visible = powerOptionsMenu.style.display === 'block';
+  document.querySelectorAll('#powerOptionsMenu').forEach(m=>m.style.display='none');
+  powerOptionsMenu.style.display = visible ? 'none' : 'block';
+};
+// Hide on click elsewhere
+document.body.addEventListener('click', () =>
+  (powerOptionsMenu.style.display = 'none'));
+
+// Item click handlers for each option
+Array.from(powerOptionsMenu.querySelectorAll('.power-option')).forEach(opt => {
+  opt.onclick = function(e) {
+    const tool = this.getAttribute('data-tool');
+    powerOptionsMenu.style.display = 'none';
+    openPowerToolPopup(tool);
+  }
+});
+
+// Core stub/mockup popups for each tool
+function openPowerToolPopup(tool) {
+  let html = '';
+  switch(tool) {
+    case 'strategic':
+      html = `<h2>Strategic Advice</h2>
+        <div><label>Business Goal or Challenge:</label><br>
+        <input style="width:95%;" placeholder="e.g. Entering a new sector, boosting margins, etc."></div>
+        <div style="margin:1rem 0 0.5rem 0">
+        <button style="padding:0.6rem 1.3rem;border-radius:6px;background:#2979ff;color:#fff;font-weight:600;border:none;">Analyze &amp; Advise</button>
+        </div>
+        <div class="tool-desc" style="margin-top:1.1rem;color:#666;font-size:1.04rem;">
+        The AI will suggest high-level directions tailored to your entry or challenge. You can route the results into a chat message if needed.</div>`;
+      break;
+    case 'swot':
+      html = `<h2>SWOT Analysis</h2>
+        <div>
+          <label>Entity (ALS Global / Customer / Competitor):</label><br>
+          <input style="width:95%;" placeholder="Company or division...">
+        </div>
+        <div style="margin:0.6rem 0 0.5rem 0">
+          <button style="padding:0.6rem 1.3rem;border-radius:6px;background:#2979ff;color:#fff;font-weight:600;border:none;">Generate SWOT</button>
+        </div>
+        <div style="margin-top:1.1rem;color:#666;">Get a structured strengths, weaknesses, opportunities, threats scan suitable for board or sales use. </div>`;
+      break;
+    case 'proposal':
+      html = `<h2>Proposal/Email Draft</h2>
+        <div><label>Target Customer/Contact:</label><br>
+        <input style="width:95%;" placeholder="Customer Name, Contact"></div>
+        <div style="margin-top:0.8rem;">
+        <label>Context/Project Needs:</label><br>
+        <textarea style="width:98%;height:55px;" placeholder="Outline opportunity, project, or customer pain points"></textarea>
+        </div>
+        <div style="margin-top:0.7rem;"><button style="background:#2979ff;color:#fff;font-weight:600;padding:0.6rem 1.3rem;border:none;border-radius:6px;">Draft Email/Proposal</button></div>
+        <div style="color:#666;margin-top:1rem;">The AI will generate or refine a professional sales communication for this context.</div>`;
+      break;
+    case 'objection':
+      html = `<h2>Customer Objection Handler</h2>
+        <div><label>Objection / Concern:</label><br>
+        <select style="width:97%;margin-bottom:0.6rem;">
+          <option value="">Select Common Objection...</option>
+          <option>Price Too High</option>
+          <option>Prefer Existing Vendor</option>
+          <option>Not Convinced of Value</option>
+          <option>Unsure About Technical Capability</option>
+          <option>Other</option>
+        </select>
+        </div>
+        <div>
+          <label>Additional Context:</label>
+          <input style="width:95%;" placeholder="(optional) e.g., details about project/customer">
+        </div>
+        <div style="margin-top:0.9rem;">
+          <button style="background:#2979ff;color:#fff;font-weight:600;padding:0.6rem 1.3rem;border:none;border-radius:6px;">Handle Objection</button>
+        </div>
+        <div style="color:#666;margin-top:1rem;">This assistant will output a structured convincing reply with sales talking points and handling strategies. You can inject this into chat or copy out for use elsewhere.</div>`;
+      break;
+    case 'export':
+      html = `<h2>Save/Export Full Analyses</h2>
+        <div style="margin-bottom:1rem;">Download or export your current analysis session:</div>
+        <button style="background:#388e3c;color:#fff;font-weight:600;margin:0 0.7rem 0.7rem 0.0rem;padding:0.55rem 1.4rem;border:none;border-radius:6px;">Save as PDF (coming soon)</button>
+        <button style="background:#00838f;color:#fff;font-weight:600;margin:0 0.7rem 0.7rem 0rem;padding:0.55rem 1.4rem;border:none;border-radius:6px;">Export CSV (coming soon)</button>
+        <div style="margin-top:1.2rem;color:#666;">(This tool will allow exporting analyses as PDF or CSV for reporting and sharing. You can copy chat manually in the meantime.)</div>`;
+      break;
+    case 'examples':
+      html = `<h2>Example Prompt Library</h2>
+        <div style="margin-bottom:1rem;">One-click to insert popular prompt ideas:</div>
+        <ul style="padding-left:1.5em;">
+          <li><button class="example-btn" style="margin-bottom:4px;">Growth Opportunities for ALS Global in 2025</button></li>
+          <li><button class="example-btn" style="margin-bottom:4px;">Compare Service Offerings with Bureau Veritas</button></li>
+          <li><button class="example-btn" style="margin-bottom:4px;">How can ALS Global improve project delivery?</button></li>
+        </ul>
+        <div style="margin-top:1.2rem;color:#666;">Use these prompt examples as a starting point; you can inject them into chat with one click or edit before sending.</div>`;
+      break;
+  }
+  showModal(html);
+}
+
+
+  };
 
     // ========== MODAL ==========
     function showModal(html) {
