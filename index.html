@@ -20,6 +20,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
 
+.sidebar-btn {
+  display: block;
+  width: 100%;
+  padding: 0.7em 0;
+  background: #273043;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  font-weight: 500;
+  margin: 1em 0 0.5em 0;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 6px rgba(39,48,67,0.06);
+}
+.sidebar-btn:hover, .sidebar-btn:focus {
+  background: #1d2533;
+  outline: none;
+}
+
+
+
 #openPopupBtn {
   display: block;
   width: 100%;
@@ -168,16 +190,21 @@
   <div class="container">
     <nav class="sidebar collapsed" id="sidebar">
       <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">☰</button>
+
+
       <div class="sidebar-content">
         <h3>Resources<br></h3>
 
-   <!-- Popup Button -->
-        <button id="openPopupBtn">Help ❔</button>
+   <button class="sidebar-btn" id="openPopupBtn">Help ❔</button>
+<button class="sidebar-btn" id="contactBtn" style="margin-bottom: 0.7em;">Email Us</button>
+
+<ul id="sidebarLinks">
+
+
 
 
         <ul id="sidebarLinks">
- <li title = "socialai@tuta.io"><a href="mailto:socialai@tuta.io" >📧 Contact Us</a></li>
-
+ 
 <br><hr>
 
   <h3>AI Task Apps</h3>—  
@@ -299,6 +326,13 @@ Customer/Competitor
         popup.style.display = 'none';
       }
     }
+
+const contactBtn = document.getElementById('contactBtn');
+contactBtn.onclick = function() {
+  window.location.href = "mailto:socialai@tuta.io";
+}
+
+
   </script>
 </body>
 </html>
