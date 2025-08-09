@@ -11,6 +11,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <style>
 
+body {
+  font-family:  'Inter', Arial, sans-serif;
+  background: #f7f8fa;
+  margin: 0;
+  color: #1a1a1a;
+}
+
 .modal-content pre {
   white-space: pre-wrap;   /* Wraps text while keeping newlines */
   word-wrap: break-word;   /* Breaks long words if needed */
@@ -21,7 +28,7 @@
 
 
 body {
-  font-family: Arial, sans-serif;
+  font-family:  'Inter', Arial, sans-serif;
   background: #f7f8fa;
   margin: 0;
   color: #1a1a1a;
@@ -55,11 +62,7 @@ button {
   background: #ff9800;
   color: #fff;
 }
-#crmUploadInput {
-  background: #fff;
-  border: 1px solid #ccc;
-  padding: 0.3rem;
-}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -135,7 +138,7 @@ tr:hover {
 <header>
   <span class="title">Customer Renewal Predictor</span>
   <div class="top-actions">
-    <button id="simulateDataBtn">Analyze Data</button>
+    <button id="simulateDataBtn" title="Choose customer data to upload for retention prediction. You can use .csv, .xlsx, LIMS, Webtrieve, or other designated files. Click thr Analyze Data button to repeat the analysis">Analyze Data</button>
     <input type="file" id="crmUploadInput" accept=".csv,.xlsx" />
   </div>
 </header>
