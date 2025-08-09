@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RFP/RFI Response Coach</title>
+ <!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+<meta name="viewport" content="width=900, initial-scale=1">
+<style>
+html, body { font-family: Arial, Helvetica, sans-serif; }
+body {
+  background: #f7f8fa;
+  margin: 0;
+  color: #1a1a1a;
+}
+header {
+  background: #2c3e50;
+  color: #fff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px #0001;
+}
+.title {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+button {
+  font-size: 1rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+#simulateBtn {
+  background: #1976d2;
+  color: #fff;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  margin-bottom: 1.5rem;
+}
+thead { background: #e9f0fb; }
+th, td {
+  padding: 0.6rem;
+  text-align: left;
+}
+tr:nth-child(even) { background: #fafafa; }
+tr:hover { background: #f0f0f0; }
+.toast {
+  display: none;
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 2rem;
+  background: #2e7d32;
+  color: #fff;
+  border-radius: 6px;
+  z-index: 9999;
+  opacity: 0.96;
+  font-weight: 600;
+}
+.toast.show { display: block; }
+#modalPopup {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left:0; top:0; width:100vw; height:100vh;
+  background: rgba(0,0,0,0.4);
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 700px;
+  width: 92%;
+  max-height: 86vh;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  position: relative;
+  overflow-y: auto;
+resize: both;
+}
+
+
+
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  font-size: 1.5rem;
+  color: red;       /* Red color for the X */
+  background: none; /* No background */
+  border: none;     /* No border */
+  cursor: pointer;
+  user-select: none;
+  padding: 0;
+  line-height: 1;
+}
+.modal-close:hover {
+  color: darkred;   /* Slightly darker red on hover for clarity */
+}
+
+.modal-content pre {
+  background:#f6f6f7;
+  border-radius:4px;
+  padding:0.7em;
+  margin-top:0.3em;
+  font-size:1rem;
+  color:#222;
+  font-family:inherit;
+  white-space:pre-wrap;
+  word-wrap:break-word;
+  overflow-wrap:break-word;
+  max-width:100%;
+  max-height:220px;
+  overflow-y:auto;
+  box-sizing:border-box;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="title">RFP/RFI Response Coach</span>
+  <div class="top-actions">
+    <button id="simulateBtn">Analyze RFP Data</button>
+    <input type="file" id="rfpUploadInput" accept=".pdf,.doc,.docx,.xls,.xlsx" />
+  </div>
+</header>
+
+<main style="padding:1.5rem; max-width:1050px; margin:auto;">
+  
+<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:0.5em;">
+  <h2 style="font-size:1.3rem;font-weight:600;">RFP/RFI Requirements Review</h2>
+  <div style="display:flex;align-items:center;gap:0.6rem;">
+    <button id="viewFileBtn" style="background:#555;color:#fff;padding:0.35rem 0.9rem;border:none;border-radius:4px;cursor:pointer;">View</button>
+    <div id="rfpMeta" style="font-size:0.95rem;color:#444;text-align:right;line-height:1.4;">
+      <!-- Metadata injected -->
+    </div>
+  </div>
+</div>
+
+
+  <table id="requirementsTable">
+    <thead>
+      <tr>
+        <th>Section</th>
+        <th>Requirement Summary</th>
+        <th>AI Response Coach</th>
+        <th>Compliance Flag</th>
+      </tr>
+    </thead>
+    <tbody>
+      <!-- Populated by JS -->
+    </tbody>
+  </table>
+  <section id="coachNotes" style="margin-top:2rem;">
+    <h3>Response Coach Recommendations</h3>
+    <ul id="coachRecs"></ul>
+  </section>
+</main>
+
+<!-- Toast notification -->
+<div class="toast" id="toast"></div>
+
+<!-- Modal for sample persuasive language -->
+<div id="modalPopup">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div id="modalInnerContent"></div>
+  </div>
+</div>
+
+<script>
+// Demo RFP Requirements and response guidance
+const DEMO_RFP = [
+  {
+    section: "Company Overview",
+    req: "Provide an executive summary and overview of your company's key strengths.",
+    rec: "Open strongly; highlight company vision, major differentiators, and recent successes.",
+    compliance: "No issues",
+    sample: `Executive Summary Sample:\n\nOur organization brings 20+ years of industry expertise, a commitment to innovation, and a track record of exceeding client expectations. We deliver:\n- Proven on-time project delivery (98%+)\n- Industry-leading certifications\n- Bespoke support and rapid response\n\nOur vision is to be your trusted partner for every stage of this project.`
+  },
+  {
+    section: "Technical Solution",
+    req: "Describe your proposed solution, technical approach, and how it meets the stated requirements.",
+    rec: "Directly address RFP requirements; be specific about technical compliance; use persuasive wording and customer-centric benefits.",
+    compliance: "Ensure alignment with all RFP specs.",
+    sample: `Persuasive Wording:\n\nOur solution fully meets and exceeds all RFP criteria:\n- Utilizes a robust, scalable architecture using [insert technologies]\n- Adheres to all technical and security standards (see annex)\n- Delivers measurable outcomes: improved uptime, reduced costs\n\nWe've successfully deployed similar solutions for organizations such as [example].`
+  },
+  {
+    section: "Project Timeline",
+    req: "Submit a proposed timeline with milestones.",
+    rec: "Provide a clear, realistic Gantt or milestone chart; highlight on-time performance; set expectations for communication.",
+    compliance: "Caution: Feasibility and realism required.",
+    sample: `Timeline Response Example:\n\n- Kickoff: 10 days after award\n- Milestone 1: System design complete (Month 1)\n- Milestone 2: User training (Month 2)\n- Go-live: Month 3\n\nWe commit to weekly status updates and proactive risk management.`
+  },
+  {
+    section: "Pricing and Terms",
+    req: "Detail pricing structure, payment terms, and value-added options.",
+    rec: "Be transparent and competitive; note value for price; address compliance with any mandated pricing format.",
+    compliance: "Confirm format compliance.",
+    sample: `Sample Language:\n\nWe offer a value-focused, comprehensive pricing structure:\n- Clear, itemized costs for all deliverables\n- Optional bundles for additional savings\n- Flexible payment terms (net 30/45)\n\nOur pricing complies with all requirements outlined in Section 4.`
+  },
+  {
+    section: "References & Credentials",
+    req: "Provide relevant client references, certifications, and evidence of past performance.",
+    rec: "Select references matching the customer’s sector; emphasize certified expertise.",
+    compliance: "All credentials up to date.",
+    sample: `Recommended Wording:\n\nWe are proud to hold the following certifications: [list certifications].\nRecent client successes include:\n- [Client 1]: Project delivered 2 months ahead of schedule.\n- [Client 2]: Ongoing contract renewal for 5+ years.\nContact details available upon request.`
+  }
+];
+
+// Coach recommendations for a strong RFP/RFI response.
+const DEMO_RECS = [
+  "1. Use the client’s language and repeat their key requirements in your responses.",
+  "2. Organize your proposal matching the requested RFP order/sections for easy review.",
+  "3. Provide short, persuasive introductions and concise, bulleted answers to each technical requirement.",
+  "4. Highlight your risk mitigation, on-time success, and commitment to communication.",
+  "5. For compliance, double check all mandatory certifications, formats, and deadlines.",
+  "6. Use the sample language tools (⧉) for fast, compelling section drafts."
+];
+
+// Toast helpers
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = "toast show";
+  setTimeout(()=> toast.className = "toast", 1700);
+}
+
+// Modal logic
+function closeModal() {
+  document.getElementById("modalPopup").style.display = "none";
+}
+function showModal(html) {
+  document.getElementById("modalInnerContent").innerHTML = html;
+  document.getElementById("modalPopup").style.display = "flex";
+}
+
+// Render requirements table with copy buttons
+function renderTable(reqlist) {
+  const tbody = document.querySelector("#requirementsTable tbody");
+  tbody.innerHTML = "";
+  reqlist.forEach((row, i) => {
+    tbody.innerHTML += `
+      <tr style="cursor:pointer">
+        <td>${row.section}</td>
+        <td>${row.req}</td>
+        <td>
+          <span style="display:inline-block;margin-bottom:0.15em">${row.rec}</span>
+          <br>
+          <button style="background:#3578e5;color:#fff;margin-top:0.35em;padding:0.25rem 0.7rem;border-radius:5px;font-size:0.98em;cursor:pointer"
+            onclick="event.stopPropagation();showSampleModal(${i})">⧉ Sample</button>
+        </td>
+        <td>${row.compliance}</td>
+      </tr>
+    `;
+  });
+}
+
+// Simulated meta data pools
+const COMPANY_NAMES = [
+  "Acme Industries", "BetaTech Solutions", "Global Dynamics", "EnviroSystems Ltd",
+  "NextGen Analytics", "OmniCore Group", "Prime Engineering", "Velocity Labs"
+];
+function randomRfpNumber() {
+  return "RFP-" + Math.floor(1000 + Math.random() * 9000);
+}
+function randomDueDate() {
+  const today = new Date();
+  const future = new Date(today.getTime() + (Math.floor(Math.random()*30)+7) * 24*60*60*1000);
+  return future.toLocaleDateString();
+}
+function generateRfpMeta() {
+  const company = COMPANY_NAMES[Math.floor(Math.random() * COMPANY_NAMES.length)];
+  const number = randomRfpNumber();
+  const due = randomDueDate();
+  document.getElementById("rfpMeta").innerHTML = `
+    <div><b>Customer:</b> ${company}</div>
+    <div><b>RFP#:</b> ${number}</div>
+    <div><b>Due:</b> ${due}</div>
+  `;
+}
+
+
+// Show modal with sample persuasive wording, word-wrapped and scrollable with copy
+function showSampleModal(idx) {
+  const row = currentRequirements[idx];
+  showModal(`
+    <h3>${row.section} – Suggested Language</h3>
+    <div style="margin:0.75em 0 0.2em 0"><b>Requirement:</b> ${row.req}</div>
+    <div><b>AI Coach Tip:</b> ${row.rec}</div>
+    <pre>${row.sample}</pre>
+    <button
+      id="copyBtn"
+      style="margin-top:0.22em;background:#1877f2;color:#fff;border:none;border-radius:6px;padding:0.5rem 1rem;font-size:1rem;font-weight:600;cursor:pointer;"
+    >⧉ Copy</button>
+    <button style="margin-top:1.1rem;margin-left:0.75em;background:#2979ff;color:#fff;font-weight:500;border-radius:6px;padding:0.6rem 1.3rem;border:none;" onclick="closeModal()">Close</button>
+  `);
+  setTimeout(()=>{
+    document.getElementById('copyBtn').onclick = function() {
+      copyToClipboard(row.sample);
+      showToast("Copied!");
+    };
+  },115);
+}
+
+// Coach recommendations list
+function renderRecs() {
+  document.getElementById('coachRecs').innerHTML =
+    DEMO_RECS.map(a=>`<li>${a}</li>`).join("");
+}
+
+// Copy utility
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text);
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try { document.execCommand('copy'); } catch(e) { }
+    document.body.removeChild(textarea);
+  }
+}
+
+// Track current
+let currentRequirements = DEMO_RFP;
+
+// Simulate data click handler
+document.getElementById("simulateBtn").onclick = function() {
+  generateRfpMeta();
+  currentRequirements = DEMO_RFP;
+  renderTable(currentRequirements);
+  renderRecs();
+  showToast("RFP/RFI data loaded.");
+};
+
+
+// File upload (simulated front-end parsing)
+document.getElementById("rfpUploadInput").onchange = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  lastUploadedFile = file; // store it for viewing later
+  showToast("Analyzing uploaded file...");
+  setTimeout(() => {
+    generateRfpMeta();
+    currentRequirements = DEMO_RFP;
+    renderTable(currentRequirements);
+    renderRecs();
+    showToast("Key RFP/RFI requirements extracted and analyzed.");
+  }, 1200);
+};
+
+
+
+// On page load: show simulated data
+window.onload = function() {
+  currentRequirements = DEMO_RFP;
+  renderTable(currentRequirements);
+  renderRecs();
+};
+
+window.onload = function() {
+  generateRfpMeta();
+  currentRequirements = DEMO_RFP;
+  renderTable(currentRequirements);
+  renderRecs();
+};
+
+let lastUploadedFile = null;
+
+document.getElementById("viewFileBtn").onclick = function() {
+  if (!lastUploadedFile) {
+    showToast("No file uploaded to view");
+    return;
+  }
+
+  const ext = lastUploadedFile.name.split('.').pop().toLowerCase();
+  if (["pdf", "doc", "docx"].includes(ext)) {
+    // show popup with embedded file
+    const fileURL = URL.createObjectURL(lastUploadedFile);
+    // For PDF: iframe will display inline in most browsers
+    // For DOC/DOCX: the browser might download, so we embed via Google Docs viewer
+    let embedHTML = "";
+    if (ext === "pdf") {
+      embedHTML = `<iframe src="${fileURL}" style="width:100%;height:80vh;" frameborder="0"></iframe>`;
+    } else {
+      const gview = `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(fileURL)}`;
+      embedHTML = `<iframe src="${gview}" style="width:100%;height:80vh;" frameborder="0"></iframe>`;
+    }
+    showModal(embedHTML);
+  } else {
+    showToast("Unable to Open File");
+  }
+};
+
+
+</script>
+
+</body>
+</html>
