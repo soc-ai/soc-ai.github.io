@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+
+<meta charset="UTF-8">
+<title>Customer Renewal Predictor</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+
+.modal-content pre {
+  white-space: pre-wrap;   /* Wraps text while keeping newlines */
+  word-wrap: break-word;   /* Breaks long words if needed */
+  overflow-wrap: break-word;
+  max-width: 100%;         /* Make sure it never overflows horizontally */
+  box-sizing: border-box;
+}
+
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f7f8fa;
+  margin: 0;
+  color: #1a1a1a;
+}
+header {
+  background: #2c3e50;
+  color: #fff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px #0001;
+}
+.title {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+button {
+  font-size: 1rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+#simulateDataBtn {
+  background: #ff9800;
+  color: #fff;
+}
+#crmUploadInput {
+  background: #fff;
+  border: 1px solid #ccc;
+  padding: 0.3rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+}
+thead {
+  background: #e9f0fb;
+}
+th, td {
+  padding: 0.6rem;
+  text-align: left;
+}
+tr:nth-child(even) {
+  background: #fafafa;
+}
+tr:hover {
+  background: #f0f0f0;
+}
+.toast {
+  display: none;
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 2rem;
+  background: #2e7d32;
+  color: #fff;
+  border-radius: 6px;
+  z-index: 9999;
+  opacity: 0.96;
+  font-weight: 600;
+}
+.toast.show { display: block; }
+#modalPopup {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left:0; top:0; width:100vw; height:100vh;
+  background: rgba(0,0,0,0.4);
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 520px;
+  width: 90%;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.3);
+  position: relative;
+}
+.modal-close {
+  position: absolute;
+  right: 12px;
+  top: 8px;
+  font-size: 1.5rem;
+  color: #555;
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<header>
+  <span class="title">Customer Renewal Predictor</span>
+  <div class="top-actions">
+    <button id="simulateDataBtn">Analyze Data</button>
+    <input type="file" id="crmUploadInput" accept=".csv,.xlsx" />
+  </div>
+</header>
+
+<main style="padding:1.5rem; max-width:900px; margin:auto;">
+  <section id="riskAnalysis">
+    <table id="customerRiskTable">
+      <thead>
+        <tr>
+          <th>Customer Name</th>
+          <th>Last Activity</th>
+          <th>Support Tickets</th>
+          <th>Risk Score</th>
+          <th>Renewal Risk</th>
+          <th>Recommendations</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </section>
+  <section id="overallSuggestions" style="margin-top:2rem;">
+    <h3>Top Retention Priorities</h3>
+    <ul id="suggestionsList"></ul>
+  </section>
+</main>
+
+<div class="toast" id="toast"></div>
+
+<div id="modalPopup">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div id="modalInnerContent"></div>
+  </div>
+</div>
+
+<script>
+// Suggested approach messages per risk level
+const RETENTION_MESSAGES = {
+  "High": `Hi [Customer Name],
+
+We truly value your partnership and want to ensure you are getting the best possible service. We've noticed decreased engagement recently, and we’d like to reconnect to address any challenges and explore how we can add more value.
+
+Key points we’d like to discuss:
+- Recent service usage and satisfaction levels
+- Any pain points or obstacles you’re facing
+- Opportunities for tailored solutions or exclusive offers
+- Upcoming renewal terms and potential incentives
+
+Please let us know a convenient time to chat. Our goal is to support your success and build a stronger, long-lasting partnership.
+
+Looking forward to connecting soon.
+`,
+  "Medium": `Hi [Customer Name],\n\nJust reaching out to ensure you’re getting the most from our services. Is there anything we can do to improve your experience or address any concerns? Your feedback helps us serve you better!`,
+  "Low": `Hi [Customer Name],\n\nThank you for being a valued customer! We’re always here to support your goals. If you have any new needs or questions, just let us know.`
+};
+
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = "toast show";
+  setTimeout(()=> toast.className = "toast", 1500);
+}
+
+function copyToClipboard(text) {
+  if (navigator.clipboard && window.isSecureContext) {
+    navigator.clipboard.writeText(text);
+  } else {
+    const textarea = document.createElement("textarea");
+    textarea.value = text;
+    textarea.style.position = "fixed";  // prevent scrolling to bottom
+    document.body.appendChild(textarea);
+    textarea.focus();
+    textarea.select();
+    try { document.execCommand('copy'); } catch(e) { console.error(e); }
+    document.body.removeChild(textarea);
+  }
+}
+
+function closeModal() {
+  document.getElementById("modalPopup").style.display = "none";
+}
+function showModal(html) {
+  document.getElementById("modalInnerContent").innerHTML = html;
+  document.getElementById("modalPopup").style.display = "flex";
+}
+
+function getSimulatedData() {
+  return [
+    {name: "Acme Corp", lastActivity: "2025-07-29", tickets: 0, nps: 8},
+    {name: "BetaTech Ltd", lastActivity: "2025-07-06", tickets: 4, nps: 6},
+    {name: "ChemLab Inc", lastActivity: "2025-06-12", tickets: 1, nps: 7},
+    {name: "Enviro Solutions", lastActivity: "2025-07-01", tickets: 6, nps: 5},
+    {name: "LabLogix", lastActivity: "2025-07-30", tickets: 0, nps: 9}
+  ].map(row => {
+    let daysSince = (Date.now() - new Date(row.lastActivity).getTime())/86400000;
+    let score = Math.round(
+      daysSince * 1.8 + row.tickets * 6 + (10 - row.nps) * 8 +
+      (Math.random()*10)
+    );
+    score = Math.min(99, Math.max(5, score));
+    let risk = score > 70 ? "High" : score > 40 ? "Medium" : "Low";
+    return {...row, score, risk};
+  });
+}
+
+function renderTable(data) {
+  const tbody = document.querySelector("#customerRiskTable tbody");
+  tbody.innerHTML = "";
+  data.forEach(row => {
+    let color = row.risk === "High" ? "#f44336" : row.risk === "Medium" ? "#ff9800" : "#43a047";
+    let rec = row.risk === "High" ? "Immediate intervention: Personalized offer or check-in call"
+      : row.risk === "Medium" ? "Send value reminder; survey satisfaction" : "Standard nurture";
+    tbody.innerHTML += `
+      <tr style="cursor:pointer" onclick="showRetentionModal('${row.name}','${row.risk}','${rec}')">
+        <td>${row.name}</td>
+        <td>${row.lastActivity}</td>
+        <td>${row.tickets}</td>
+        <td>${row.score}</td>
+        <td style="color:${color};font-weight:600;">${row.risk}</td>
+        <td>${rec}</td>
+      </tr>`;
+  });
+}
+
+function showRetentionModal(name, risk, rec) {
+  let message = RETENTION_MESSAGES[risk]?.replace('[Customer Name]', name) || '';
+  showModal(`
+    <h3>${name}: Retention Steps</h3>
+    <div style="margin:1rem 0;">
+      Risk Level: <b style="color:${risk==='High'?'#f44336':risk==='Medium'?'#ff9800':'#43a047'}">${risk}</b>
+    </div>
+    <div><b>Recommended Action:</b> ${rec}</div>
+    <hr>
+    <div style="margin:1rem 0 0.3rem 0;">
+      <b>Suggested Language for Outreach:</b>
+      <pre style="background:#f9f9f9; border-radius:4px; padding:0.7em; margin-top:0.3em; font-size:1rem; color:#222; font-family:inherit;">${message}</pre>
+      <button style="margin-top:0.3em; background:#1877f2; color:#fff; border:none; border-radius:6px; padding:0.5rem 1rem; font-size:1rem; font-weight:600; cursor:pointer;" id="copyRetentionMsgBtn">⧉ Copy</button>
+    </div>
+    <button style="margin-top:1.2rem; background:#2979ff; color:#fff; font-weight:500; border-radius:6px; padding:0.6rem 1.4rem; border:none;" onclick="closeModal()">Close</button>
+  `);
+  setTimeout(()=>{
+    document.getElementById('copyRetentionMsgBtn').onclick = function() {
+      copyToClipboard(message);
+      showToast("Copied!");
+    };
+  }, 120);
+}
+
+function renderSuggestions(data) {
+  let suggestions = [];
+  if (data.some(d => d.risk === 'High')) {
+    suggestions.push("Review high-risk customers immediately and reach out personally.");
+  }
+  suggestions.push("Monitor satisfaction with regular surveys.");
+  suggestions.push("Reward loyal customers with incentives to prevent slip into risk.");
+  document.getElementById("suggestionsList").innerHTML =
+    suggestions.map(s => `<li>${s}</li>`).join("");
+}
+
+document.getElementById("simulateDataBtn").onclick = function() {
+  let data = getSimulatedData();
+  renderTable(data);
+  renderSuggestions(data);
+  showToast("CRM / Log data loaded");
+};
+
+document.getElementById("crmUploadInput").onchange = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  showToast("Analyzing uploaded CRM / Log . . .");
+  setTimeout(() => {
+    let data = getSimulatedData();
+    renderTable(data);
+    renderSuggestions(data);
+    showToast("CRM log analyzed");
+  }, 1000);
+};
+</script>
+
+</body>
+</html>
