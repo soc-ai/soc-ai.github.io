@@ -111,6 +111,13 @@ tr:hover {
   box-shadow: 0 2px 20px rgba(0,0,0,0.3);
   position: relative;
 }
+
+.modal-content {
+  max-height: 80vh;        /* keep popup from exceeding 80% of screen height */
+  overflow-y: auto;        /* scroll if content taller */
+}
+
+
 .modal-close {
   position: absolute;
   right: 12px;
@@ -181,8 +188,29 @@ Please let us know a convenient time to chat. Our goal is to support your succes
 
 Looking forward to connecting soon.
 `,
-  "Medium": `Hi [Customer Name],\n\nJust reaching out to ensure you’re getting the most from our services. Is there anything we can do to improve your experience or address any concerns? Your feedback helps us serve you better!`,
-  "Low": `Hi [Customer Name],\n\nThank you for being a valued customer! We’re always here to support your goals. If you have any new needs or questions, just let us know.`
+  "Medium": `Hi [Customer Name],
+
+We hope everything is going well with your current services. To ensure you continue receiving maximum value, we’d appreciate any feedback or concerns you might have.
+
+Here are some areas we’re happy to assist with:
+- Reviewing recent service delivery and performance
+- Addressing any open issues or questions
+- Offering new features or service enhancements
+- Planning for future needs or potential adjustments
+
+Your satisfaction is important to us. Please feel free to reach out anytime to discuss how we can improve your experience.`,
+
+  "Low": `Hi [Customer Name],
+
+Thank you very much for continuing to choose our services. We appreciate your loyalty and want to remind you that we’re here to help whenever you need us.
+
+Some ways we can assist include:
+- Providing updates on our latest capabilities and offerings
+- Scheduling routine check-ins to support your goals
+- Answering any questions or concerns promptly
+- Keeping you informed about industry trends or best practices
+
+Please don’t hesitate to contact us with any new requests or ideas. We look forward to supporting your ongoing success.`
 };
 
 function showToast(msg) {
