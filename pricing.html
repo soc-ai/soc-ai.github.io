@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Pricing Scenario Simulator</title>
+
+<!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+
+<style>
+  html, body {
+    font-family: Arial, Helvetica, sans-serif;
+    background: #f7f8fa;
+    margin: 0;
+    color: #1a1a1a;
+    height: 100%;
+  }
+  header {
+    background: #2c3e50;
+    color: #fff;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 6px #0001;
+  }
+  .title {
+    font-size: 1.6rem;
+    font-weight: 600;
+  }
+  .top-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+  }
+  button, select {
+    font-size: 1rem;
+    padding: 0.4rem 0.8rem;
+    border-radius: 4px;
+    border: none;
+    cursor: pointer;
+  }
+  button:disabled {
+    background: #888;
+    cursor: not-allowed;
+  }
+  select {
+    padding: 0.35rem 0.6rem;
+  }
+  #scenarioSelect {
+    min-width: 160px;
+  }
+  button#simulateBtn {
+    background-color: #1976d2;
+    color: #fff;
+  }
+  main {
+    padding: 1.5rem 2rem;
+    max-width: 1100px;
+    margin: auto;
+  }
+  h2 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  section {
+    margin-bottom: 2rem;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #fff;
+    box-shadow: 0 1px 3px rgb(30 30 30 / 0.1);
+  }
+  thead {
+    background: #e9f0fb;
+  }
+  th, td {
+    padding: 0.7rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  tbody tr:hover {
+    background: #f0f4fa;
+    cursor: pointer;
+  }
+  .toast {
+    display: none;
+    position: fixed;
+    top: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 1rem 2rem;
+    background: #2e7d32;
+    color: #fff;
+    border-radius: 6px;
+    z-index: 9999;
+    opacity: 0.96;
+    font-weight: 600;
+    user-select: none;
+    pointer-events: none;
+  }
+  .toast.show {
+    display: block;
+  }
+  /* Chart container */
+  #charts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2rem;
+    justify-content: space-around;
+    margin-top: 1rem;
+  }
+  .chart-wrapper {
+    flex: 1 1 320px;
+    background: #fff;
+    box-shadow: 0 1px 6px rgb(30 30 30 / 0.1);
+    padding: 1rem;
+    border-radius: 6px;
+  }
+  canvas {
+    /* ensure charts fill container width */
+    width: 100% !important;
+    height: 280px !important;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="title">Pricing Scenario Simulator</span>
+  <div class="top-actions">
+    <select id="scenarioSelect" aria-label="Select Pricing Scenario">
+      <option value="1">Scenario 1: Moderate Discount + Basic Bundle</option>
+      <option value="2">Scenario 2: Aggressive Discount + Premium Bundle + Fee</option>
+      <option value="3">Scenario 3: No Discount + Custom Fee Structure</option>
+    </select>
+    <button id="simulateBtn">Simulate Scenario</button>
+  </div>
+</header>
+
+<main>
+
+  <section>
+    <h2>Pricing Scenario Summary</h2>
+    <table id="summaryTable" aria-live="polite" aria-describedby="summaryDesc">
+      <caption id="summaryDesc" style="text-align:left; padding-bottom:8px;">Summary of pricing calculated metrics for selected scenario.</caption>
+      <thead>
+        <tr>
+          <th>Metric</th>
+          <th>Value</th>
+          <th>Impact</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows filled dynamically -->
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Detail Pricing Model</h2>
+    <table id="detailTable" aria-live="polite" aria-describedby="detailDesc">
+      <caption id="detailDesc" style="text-align:left; padding-bottom:8px;">Breakdown of pricing model components.</caption>
+      <thead>
+        <tr>
+          <th>Component</th>
+          <th>Description</th>
+          <th>Base Amount ($)</th>
+          <th>Adjustment ($)</th>
+          <th>Final Amount ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Rows inserted here -->
+      </tbody>
+    </table>
+  </section>
+
+  <section>
+    <h2>Impact Charts</h2>
+    <div id="charts">
+      <div class="chart-wrapper">
+        <canvas id="revenueChart" aria-label="Revenue chart" role="img"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="marginChart" aria-label="Margin chart" role="img"></canvas>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="winRateChart" aria-label="Win rate chart" role="img"></canvas>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<div class="toast" id="toast"> </div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.2.1/dist/chart.umd.min.js"></script>
+<script>
+  // Simulated data for 3 scenarios
+  const scenarios = {
+    1: {
+      name: "Moderate Discount + Basic Bundle",
+      summary: {
+        revenue: 100000,
+        margin: 35000,
+        winRate: 0.65,
+        impact: {
+          revenue: "+5%",
+          margin: "-3%",
+          winRate: "+8%"
+        }
+      },
+      details: [
+        {component: "Base Price", desc: "Standard unit price * quantity", base: 105000, adjust: 0, final: 105000},
+        {component: "Discount", desc: "10% off on select SKUs", base: 0, adjust: -10500, final: -10500},
+        {component: "Bundle Value", desc: "Basic bundle offer discount", base: 0, adjust: -5000, final: -5000},
+        {component: "Fees", desc: "No additional fees", base: 0, adjust: 0, final: 0},
+      ]
+    },
+    2: {
+      name: "Aggressive Discount + Premium Bundle + Fee",
+      summary: {
+        revenue: 95000,
+        margin: 30000,
+        winRate: 0.8,
+        impact: {
+          revenue: "-3%",
+          margin: "-12%",
+          winRate: "+15%"
+        }
+      },
+      details: [
+        {component: "Base Price", desc: "Standard unit price * quantity", base: 105000, adjust: 0, final: 105000},
+        {component: "Discount", desc: "25% off on selected SKUs", base: 0, adjust: -26250, final: -26250},
+        {component: "Bundle Value", desc: "Premium bundle discount", base: 0, adjust: -8500, final: -8500},
+        {component: "Fees", desc: "Additional service fees", base: 0, adjust: 7000, final: 7000},
+      ]
+    },
+    3: {
+      name: "No Discount + Custom Fee Structure",
+      summary: {
+        revenue: 108000,
+        margin: 38000,
+        winRate: 0.50,
+        impact: {
+          revenue: "+8%",
+          margin: "+5%",
+          winRate: "-10%"
+        }
+      },
+      details: [
+        {component: "Base Price", desc: "Standard unit price * quantity", base: 105000, adjust: 0, final: 105000},
+        {component: "Discount", desc: "No discount applied", base: 0, adjust: 0, final: 0},
+        {component: "Bundle Value", desc: "No bundle discounts", base: 0, adjust: 0, final: 0},
+        {component: "Fees", desc: "Custom premium fees", base: 0, adjust: 3000, final: 3000},
+      ]
+    }
+  };
+
+  const toast = document.getElementById("toast");
+
+  // Utility to show toast
+  function showToast(message) {
+    toast.textContent = message;
+    toast.classList.add("show");
+    setTimeout(() => {
+      toast.classList.remove("show");
+    }, 1500);
+  }
+
+  // Render summary table rows
+  function renderSummary(scenario) {
+    const tbody = document.querySelector("#summaryTable tbody");
+    tbody.innerHTML = "";
+    const s = scenario.summary;
+    const trRevenue = document.createElement("tr");
+    trRevenue.innerHTML = `<td>Revenue ($)</td><td>${formatMoney(s.revenue)}</td><td>${s.impact.revenue}</td>`;
+    const trMargin = document.createElement("tr");
+    trMargin.innerHTML = `<td>Margin ($)</td><td>${formatMoney(s.margin)}</td><td>${s.impact.margin}</td>`;
+    const trWinRate = document.createElement("tr");
+    trWinRate.innerHTML = `<td>Win Rate (%)</td><td>${(s.winRate*100).toFixed(1)}%</td><td>${s.impact.winRate}</td>`;
+    tbody.appendChild(trRevenue);
+    tbody.appendChild(trMargin);
+    tbody.appendChild(trWinRate);
+  }
+
+  // Render detail table rows
+  function renderDetails(scenario) {
+    const tbody = document.querySelector("#detailTable tbody");
+    tbody.innerHTML = "";
+    scenario.details.forEach(d => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${d.component}</td>
+        <td>${d.desc}</td>
+        <td>${formatMoney(d.base)}</td>
+        <td>${formatMoney(d.adjust)}</td>
+        <td>${formatMoney(d.final)}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  // Format money nicely
+  function formatMoney(num) {
+    return num.toLocaleString('en-US', {style: 'currency', currency: 'USD', minimumFractionDigits:0});
+  }
+
+  // Chart.js setup
+  let revenueChart, marginChart, winRateChart;
+
+  function createCharts() {
+    const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+    const marginCtx = document.getElementById('marginChart').getContext('2d');
+    const winRateCtx = document.getElementById('winRateChart').getContext('2d');
+
+    revenueChart = new Chart(revenueCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Scenario 1', 'Scenario 2', 'Scenario 3'],
+        datasets: [{
+          label: 'Revenue ($)',
+          data: [
+            scenarios[1].summary.revenue,
+            scenarios[2].summary.revenue,
+            scenarios[3].summary.revenue,
+          ],
+          backgroundColor: '#1976d2'
+        }]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {stepSize: 20000}
+          }
+        }
+      }
+    });
+
+    marginChart = new Chart(marginCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Scenario 1', 'Scenario 2', 'Scenario 3'],
+        datasets: [{
+          label: 'Margin ($)',
+          data: [
+            scenarios[1].summary.margin,
+            scenarios[2].summary.margin,
+            scenarios[3].summary.margin,
+          ],
+          backgroundColor: '#43a047'
+        }]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {stepSize: 10000}
+          }
+        }
+      }
+    });
+
+    winRateChart = new Chart(winRateCtx, {
+      type: 'line',
+      data: {
+        labels: ['Scenario 1', 'Scenario 2', 'Scenario 3'],
+        datasets: [{
+          label: 'Win Rate (%)',
+          data: [
+            scenarios[1].summary.winRate * 100,
+            scenarios[2].summary.winRate * 100,
+            scenarios[3].summary.winRate * 100,
+          ],
+          borderColor: '#ff9800',
+          fill: false,
+          tension: 0.25,
+          pointRadius: 6,
+          pointHoverRadius: 8
+        }]
+      },
+      options: {
+        animation: false,
+        responsive: true,
+        scales: {
+          y: {
+            beginAtZero: true,
+            max: 100,
+            ticks: {stepSize: 20},
+            title: {
+              display: true,
+              text: 'Percentage'
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Update charts dynamically to highlight selected scenario
+  function updateCharts(selectedScenario) {
+    // Highlight bar for selected, grey out others
+    [revenueChart, marginChart].forEach(chart => {
+      chart.data.datasets[0].backgroundColor = chart.data.labels.map((_, i) => {
+        return (i+1) === selectedScenario ? (chart === revenueChart ? '#1976d2' : '#43a047') : '#ccc';
+      });
+      chart.update();
+    });
+
+    // For line chart, highlight point representing selected scenario
+    winRateChart.data.datasets[0].pointBackgroundColor = winRateChart.data.labels.map((_, i) => {
+      return (i+1) === selectedScenario ? '#ff9800' : '#ccc';
+    });
+    winRateChart.update();
+  }
+
+  // Main simulation function
+  function simulateScenario(scenarioId) {
+    if (!scenarios[scenarioId]) {
+      showToast('Invalid scenario selected');
+      return;
+    }
+    renderSummary(scenarios[scenarioId]);
+    renderDetails(scenarios[scenarioId]);
+    updateCharts(parseInt(scenarioId));
+    showToast(`Loaded: ${scenarios[scenarioId].name}`);
+  }
+
+  // Init
+  document.getElementById('simulateBtn').addEventListener('click', () => {
+    const scenarioId = document.getElementById('scenarioSelect').value;
+    simulateScenario(scenarioId);
+  });
+
+  // Initially draw charts and simulate default scenario
+  window.onload = () => {
+    createCharts();
+    simulateScenario(1);
+  };
+
+</script>
+
+</body>
+</html>
