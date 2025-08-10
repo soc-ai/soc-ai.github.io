@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>RFP Prospector </title>
+ <!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+html, body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: #f7f8fa;
+  margin: 0;
+  color: #1a1a1a;
+}
+header {
+  background: #2c3e50;
+  color: #fff;
+  padding: 1rem 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 2px 6px #0001;
+}
+.title {
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+.top-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+button, select {
+  font-size: 1rem;
+  padding: 0.4rem 0.8rem;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+}
+#scanBtn {
+  background: #3578e5;
+  color: #fff;
+}
+#uploadBtn {
+  background: #2979ff;
+  color: #fff;
+}
+#fileInput {
+  display: none;
+}
+main {
+  padding: 1.5rem 2rem;
+  max-width: 1100px;
+  margin: auto;
+}
+h2 {
+  font-weight: 600;
+  margin-bottom: 0.8rem;
+}
+.rfp-results {
+  margin-top: 1.2rem;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  box-shadow: 0 1px 3px rgb(30 30 30 / 0.08);
+}
+thead {
+  background: #e9f0fb;
+}
+th, td {
+  padding: 0.7em 1em;
+  text-align: left;
+  border-bottom: 1px solid #e6e6e6;
+}
+tbody tr:hover {
+  background: #f0f4fa;
+  cursor: pointer;
+}
+.risk-low { color: #43a047; font-weight: 600; }
+.risk-med { color: #ff9800; font-weight: 600; }
+.risk-high { color: #e53935; font-weight: 600; }
+.toast {
+  display: none;
+  position: fixed;
+  top: 40px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 1rem 2rem;
+  background: #2e7d32;
+  color: #fff;
+  border-radius: 6px;
+  z-index: 9999;
+  opacity: 0.96;
+  font-weight: 600;
+  user-select: none;
+  pointer-events: none;
+}
+.toast.show { display: block; }
+#modalPopup {
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  left:0; top:0; width:100vw; height:100vh;
+  background: rgba(0,0,0,0.43);
+  align-items: center;
+  justify-content: center;
+}
+.modal-content {
+  background: #fff;
+  border-radius: 8px;
+  padding: 1.5rem;
+  max-width: 580px;
+  width: 95%;
+  max-height: 89vh;
+  box-shadow: 0 2px 20px rgba(0,0,0,0.23);
+  position: relative;
+  overflow-y: auto;
+}
+.modal-close {
+  position: absolute;
+  right: 14px;
+  top: 10px;
+  font-size: 1.7rem;
+  color: red;
+  background: none;
+  border: none;
+  cursor: pointer;
+  user-select: none;
+  padding: 0;
+  line-height: 1;
+}
+.modal-content pre {
+  background: #f7f7fa;
+  border-radius: 4px;
+  padding: 0.8em;
+  margin-top: 0.3em;
+  font-size: 1rem;
+  color: #222;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  max-width: 100%;
+
+  /* Make scrollable */
+  max-height: 300px;   /* adjust height limit as needed */
+  overflow-y: auto;
+
+  box-sizing: border-box;
+}
+
+</style>
+</head>
+<body>
+
+<header>
+  <span class="title">RFP Prospector <span style="font-size:1rem;font-weight:400;"></span></span>
+  <div class="top-actions">
+    <input type="text" id="regionInput" placeholder="Enter region (optional)">
+
+    <button id="scanBtn">Scan for RFPs</button>
+    <button id="uploadBtn">Upload RFP/Customer Data</button>
+    <input type="file" id="fileInput" accept=".csv,.xlsx,.pdf,.docx,.doc" />
+  </div>
+</header>
+
+<main>
+  <h2>Prospect RFP Opportunities</h2>
+  <section>
+    <div style="margin-bottom: 1.2rem; color: #3a3a3a;">
+      <b>Status:</b> <span id="statusMsg">Ready for scan or upload...</span>
+    </div>
+    <div class="rfp-results">
+      <table id="rfpTable">
+        <thead>
+          <tr>
+            <th>Customer</th>
+            <th>RFP Title</th>
+            <th>Needs Summary</th>
+            <th>Due Date</th>
+            <th>Fit Score</th>
+            <th>Decision</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          <!-- Results populated by JS -->
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+<div class="toast" id="toast"></div>
+
+<div id="modalPopup">
+  <div class="modal-content">
+    <button class="modal-close" onclick="closeModal()">&times;</button>
+    <div id="modalInnerContent"></div>
+  </div>
+</div>
+
+<script>
+// Simulated RFP prospect pool
+const SIMULATED_RFPS = [
+  {
+    customer: "EnviroSolutions Ltd",
+    title: "Water Quality Compliance Monitoring RFP",
+    needs: "Ongoing water sample collection, laboratory analysis, regional compliance reporting.",
+    due: "08/28/2025",
+    fit: 96,
+    decision: "Strong Fit",
+    color: "risk-low",
+    details: `ALS Global provides accredited laboratory services and environmental compliance expertise suited to this RFP. Proposed approach:
+- Leverage regional labs for sample turnaround.
+- Offer advanced contaminant analytics.
+- Provide ongoing client support and automated compliance reporting tools.
+Recommendation: Respond with tailored proposal; highlight recent success with government contracts.`
+  },
+  {
+    customer: "Metro Municipal Gov.",
+    title: "Air Emissions Monitoring Program",
+    needs: "Quarterly air emission sampling, laboratory reporting, and consulting for legal compliance.",
+    due: "09/14/2025",
+    fit: 75,
+    decision: "Good Fit",
+    color: "risk-med",
+    details: `ALS capabilities closely align with specified needs. Key proposal points:
+- Use mobile sampling units for rapid deployment.
+- Consult on regulatory trends.
+- Bundle with related service discount.
+Potential consideration: Competition from established city vendor—address differentiation.<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>`
+  },
+  {
+    customer: "GreenWorks Agribusiness",
+    title: "Soil & Runoff Analysis Project",
+    needs: "Routine soil, runoff, groundwater testing during crop cycle, fast turnaround required.",
+    due: "08/22/2025",
+    fit: 72,
+    decision: "Possible Fit",
+    color: "risk-med",
+    details: `ALS Global labs capable of rapid soil/water testing, but agricultural volume may challenge turnaround. Suggested Tactics:
+- Proposed express service tier.
+- Highlight volume-based pricing.
+- Collaborate with local ag extension offices.
+Forecast: Win probability mid-range; emphasize process automation.`
+  },
+  {
+    customer: "EnergyPlus Renewables",
+    title: "Site Remediation Consulting",
+    needs: "Lab support, field audit, and contamination reporting for multiple renewable facilities.",
+    due: "09/01/2025",
+    fit: 88,
+    decision: "Strong Fit",
+    color: "risk-low",
+    details: `ALS can support via full-service environmental audits and remediation consulting.
+- Offer bundled field and lab analytics.
+- Reference past energy sector projects.
+Proposal: Focus on cost-effective solutions yielding rapid compliance.`
+  },
+  {
+    customer: "Eastern Manufacturing Inc.",
+    title: "ISO 14001 Environmental Audit RFP",
+    needs: "Lab analysis supporting ISO audits, data management, and compliance documentation.",
+    due: "09/07/2025",
+    fit: 54,
+    decision: "Low Fit",
+    color: "risk-high",
+    details: `ALS capable of required analysis but lacks ISO-certified audit team. Consider:
+- Partnering with certified auditor.
+- Limiting proposal scope.
+Advice: Respond only if collaboration feasible.`
+  }
+];
+
+// Simulate model (Together.ai) - would analyze real/simulated data for fit and generate reasoning
+
+function scanRFPs() {
+  document.getElementById('statusMsg').textContent =
+    "Scanning . . .";
+  showToast("Scanning for RFPs . . . ");
+
+  // Clone and randomize the simulated dataset each scan
+  let refreshedData = SIMULATED_RFPS.map(rfp => {
+    // Clone the object so original isn't changed
+    let copy = {...rfp};
+    // Randomly adjust Due Date by ± up to 7 days for demo effect
+    let baseDate = new Date(copy.due);
+    baseDate.setDate(baseDate.getDate() + Math.floor(Math.random() * 15) - 7);
+    copy.due = baseDate.toLocaleDateString();
+    // Slightly adjust fit score to simulate new model evaluation
+    let newFit = Math.max(40, Math.min(99, copy.fit + Math.floor(Math.random() * 9) - 4));
+    copy.fit = newFit;
+    // Update decision color based on adjusted fit
+    if (newFit >= 85) { copy.decision = "Strong Fit"; copy.color = "risk-low"; }
+    else if (newFit >= 65) { copy.decision = "Good Fit"; copy.color = "risk-med"; }
+    else { copy.decision = "Low Fit"; copy.color = "risk-high"; }
+    return copy;
+  }).sort(() => Math.random() - 0.5); // Shuffle order
+
+  setTimeout(() => {
+    renderTable(refreshedData);
+    document.getElementById('statusMsg').textContent =
+      "Scan Complete!";
+    showToast(`Found ${refreshedData.length} RFP opportunities – updated results`);
+  }, 2400);
+}
+
+
+// Table rendering
+
+function renderTable(data) {
+  const tbody = document.getElementById("rfpTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  data.forEach((row, i) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${row.customer}</td>
+        <td>${row.title}</td>
+        <td>${row.needs}</td>
+        <td>${row.due}</td>
+        <td class="${row.color}">${row.fit}%</td>
+        <td class="${row.color}">${row.decision}</td>
+        <td><button style="background:#1976d2;color:#fff;padding:0.29rem 1rem;border-radius:5px" onclick="showDetailsModal(${i})">View</button></td>
+      </tr>
+    `;
+  });
+}
+
+// Details modal
+
+function showDetailsModal(idx) {
+  const row = currentRfpData[idx];
+  // ... (rest stays the same)
+  showModal(`
+    <h3>${row.title}</h3>
+    <div style="margin:0.3em 0 0.5em 0"><b>Customer:</b> ${row.customer}</div>
+    <div><b>Due:</b> ${row.due}</div>
+    <div><b>Needs:</b> ${row.needs}</div>
+    <div style="margin-top:0.65em;"><b>ALS Global Fit Analysis (${row.fit}%):</b></div>
+    <pre id="rfpDetailsPre">${row.details}</pre>
+    <button id="copyBtn" style="margin-top:0.78em;background:#43a047;color:#fff;border:none;border-radius:5px;padding:0.49rem 1rem;font-size:1rem;font-weight:600;cursor:pointer;">⧉ Copy</button>
+  `);
+
+  // Attach working copy handler **after** modal is in DOM
+  document.getElementById('copyBtn').onclick = function() {
+    const text = document.getElementById('rfpDetailsPre').textContent;
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast("Copied!");
+      });
+    } else {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      try {
+        document.execCommand('copy');
+        showToast("Details copied to clipboard!");
+      } catch (err) {
+        console.error('Copy failed', err);
+      }
+      document.body.removeChild(textarea);
+    }
+  };
+}
+
+
+// Simple escape for copying
+function escapeText(t) {
+  return t.replace(/'/g,"\\'");
+}
+
+// Modal handlers
+function showModal(html) {
+  document.getElementById("modalInnerContent").innerHTML = html;
+  document.getElementById("modalPopup").style.display = "flex";
+}
+function closeModal() {
+  document.getElementById("modalPopup").style.display = "none";
+}
+
+// Copy to clipboard
+function copyDetails(txt) {
+  const el = document.createElement('textarea');
+  el.value = txt.replace(/\\'/g,"'");
+  document.body.appendChild(el);
+  el.select();
+  document.execCommand('copy');
+  document.body.removeChild(el);
+  showToast("Details copied to clipboard!");
+}
+
+// Toast
+function showToast(msg) {
+  const toast = document.getElementById("toast");
+  toast.textContent = msg;
+  toast.className = "toast show";
+  setTimeout(()=> toast.className = "toast", 1500);
+}
+
+// Upload handler
+document.getElementById("uploadBtn").onclick = function() {
+  document.getElementById("fileInput").click();
+};
+document.getElementById("fileInput").onchange = function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  document.getElementById('statusMsg').textContent = `Uploading "${file.name}"...`;
+  showToast("Uploading and analyzing your data . . .");
+  setTimeout(()=> {
+    renderTable(SIMULATED_RFPS);
+    document.getElementById('statusMsg').textContent = `File "${file.name}" analyzed (simulated).`;
+    showToast("File processed – RFP matches shown below.");
+  },1400);
+};
+// Scan button
+document.getElementById("scanBtn").onclick = scanRFPs;
+
+// On load: fresh status, no results
+window.onload = function() {
+  document.getElementById('statusMsg').textContent = "Ready for scan or upload...";
+  renderTable([]);
+};
+
+let currentRfpData = [];
+
+function renderTable(data) {
+  currentRfpData = data;
+  const tbody = document.getElementById("rfpTable").querySelector("tbody");
+  tbody.innerHTML = "";
+  data.forEach((row, i) => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${row.customer}</td>
+        <td>${row.title}</td>
+        <td>${row.needs}</td>
+        <td>${row.due}</td>
+        <td class="${row.color}">${row.fit}%</td>
+        <td class="${row.color}">${row.decision}</td>
+        <td><button style="background:#1976d2;color:#fff;padding:0.29rem 1rem;border-radius:5px" onclick="showDetailsModal(${i})">View</button></td>
+      </tr>
+    `;
+  });
+}
+
+
+
+</script>
+</body>
+</html>
