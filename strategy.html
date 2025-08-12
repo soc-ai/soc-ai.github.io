@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Global Strategies</title>
+<!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f9fafc;
+    margin: 0;
+    color: #333;
+  }
+  header {
+    background-color: #004d99;
+    color: white;
+    padding: 1rem 2rem;
+    font-size: 1.5rem;
+    font-weight: 600;
+    text-align: center;
+  }
+  main {
+    max-width: 1200px;
+    margin: 1.5rem auto;
+    padding: 0 2rem 4rem;
+  }
+  section {
+    background: white;
+    border-radius: 8px;
+    box-shadow: 0 1px 4px rgb(0 0 0 / 0.1);
+    margin-bottom: 2rem;
+    padding: 1.5rem 2rem;
+  }
+  h2 {
+    color: #004d99;
+    margin-bottom: 1rem;
+  }
+  ul.data-sources {
+    list-style: disc inside;
+    color: #555;
+  }
+  .filters {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .filters label {
+    font-weight: 600;
+    color: #222;
+  }
+  select {
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    border: 1px solid #bbb;
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9rem;
+  }
+  thead {
+    background-color: #004d99;
+    color: white;
+  }
+  th, td {
+    padding: 0.5rem 0.75rem;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+  }
+  tbody tr:hover {
+    background-color: #f0f5fb;
+  }
+  .sentiment-positive { color: #388e3c; font-weight: 700; }
+  .sentiment-neutral { color: #555; font-weight: 700; }
+  .sentiment-negative { color: #d32f2f; font-weight: 700; }
+  .report {
+    background-color: #eef5ff;
+    border-left: 5px solid #004d99;
+    padding: 1rem 1.25rem;
+    font-size: 0.95rem;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    white-space: -moz-pre-wrap;
+    white-space: -pre-wrap;
+    white-space: -o-pre-wrap;
+    word-wrap: break-word;
+  }
+  .btn-export {
+    margin-top: 1rem;
+    background-color: #004d99;
+    border: none;
+    color: white;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 600;
+    align-self: flex-start;
+    transition: background-color 0.3s ease;
+    display: inline-flex;
+    align-items: center;
+  }
+  .btn-export:hover:enabled { background-color: #003366; }
+  .btn-export:disabled { background-color: #888a8c; cursor: not-allowed; }
+  .spinner-img {
+    display: none;
+    margin-left: 8px;
+    width: 30px;
+    height: 30px;
+  }
+  @media (max-width: 900px) {
+    .dashboard-grid { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+<header>Global Strategies Analyzer</header>
+<main>
+  <section id="data-aggregation">
+    <h2>1. Real-Time Data Aggregation and Monitoring</h2>
+    <p>This module simulates continuous data collection from diverse public sources (simulated Meltwater data).</p>
+    <ul class="data-sources">
+      <li>Social media posts</li>
+      <li>News headlines and articles</li>
+      <li>Industry reports and blogs</li>
+      <li>Forums and public discussions</li>
+    </ul>
+    <button id="refresh-data" class="btn-export" aria-live="polite" aria-busy="false">
+      Data Refresh
+      <img src="spinner.gif"  id="refresh-spinner" alt="Loading spinner" class="spinner-img" />
+    </button>
+    <div id="aggregated-feed" style="margin-top:1rem;max-height:200px;overflow-y:auto; border:1px solid #ccc; border-radius:4px; padding:0.5rem; background:#fff;"></div>
+  </section>
+
+  <section id="competitor-benchmarking">
+    <h2>2. Benchmarking Dashboard</h2>
+    <div class="filters">
+      <label for="filter-region">Region:</label>
+      <select id="filter-region" aria-label="Filter by region">
+        <option value="all">All</option>
+        <option value="NA">North America</option>
+        <option value="EU">Europe</option>
+        <option value="APAC">Asia-Pacific</option>
+      </select>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Company</th>
+          <th>Reach</th>
+          <th>Sentiment</th>
+          <th>Headline</th>
+          <th>Region</th>
+        </tr>
+      </thead>
+      <tbody id="benchmark-table-body"></tbody>
+    </table>
+  </section>
+
+  <section id="automated-reporting">
+    <h2>3. Strategic Insights / Analysis / Recommendations</h2>
+    <div class="report" id="strategic-report">
+      No report generated yet. Click "Generate Report" to see insights.
+    </div>
+    <button id="generate-report" class="btn-export" aria-live="polite" aria-busy="false">
+      Generate Report
+      <img src="spinner.gif" id="generate-spinner" alt="Loading spinner" class="spinner-img" />
+    </button>
+    <button id="export-report" class="btn-export" style="background-color: #007a00;">Export Report as TXT</button>
+  </section>
+</main>
+
+<script>
+  // -------- Simulated Meltwater Data --------
+  const simulatedMeltwaterMentions = [
+    {
+      company: "ALS Global",
+      sentiment: "Positive",
+      title: "ALS named leader in APAC sustainability by major trade publication",
+      url: "https://simulated.meltwater.com/media/als-leader",
+      reach: 23000,
+      region: "APAC"
+    },
+    {
+      company: "EcoTest Solutions",
+      sentiment: "Neutral",
+      title: "EcoTest enters EU market, mixed reviews from analysts",
+      url: "https://simulated.meltwater.com/media/ecotest-eu",
+      reach: 12000,
+      region: "EU"
+    },
+    {
+      company: "CleanTech Labs",
+      sentiment: "Negative",
+      title: "CleanTech Labs faces regulatory pushback in NA sector",
+      url: "https://simulated.meltwater.com/media/cleantech-na",
+      reach: 9000,
+      region: "NA"
+    },
+    {
+      company: "Global Environmental Report",
+      sentiment: "Neutral",
+      title: "Sustainability trends underscore global compliance shifts",
+      url: "https://simulated.meltwater.com/media/global-env-report",
+      reach: 18000,
+      region: "Global"
+    },
+    {
+      company: "Industry Insights",
+      sentiment: "Positive",
+      title: "Emerging AI technologies driving innovation in environmental testing",
+      url: "https://simulated.meltwater.com/media/industry-ai-innovation",
+      reach: 21000,
+      region: "Global"
+    },
+    {
+      company: "GreenCheck Analytics",
+      sentiment: "Negative",
+      title: "Concerns grow over inconsistent environmental reporting standards",
+      url: "https://simulated.meltwater.com/media/greencheck-standards",
+      reach: 7500,
+      region: "All"
+    },
+    {
+      company: "Mineral Insights",
+      sentiment: "Neutral",
+      title: "APAC mineral testing market shows signs of steady demand",
+      url: "https://simulated.meltwater.com/media/mineral-insights-apac",
+      reach: 11000,
+      region: "APAC"
+    },
+    {
+      company: "CleanTech Labs",
+      sentiment: "Neutral",
+      title: "New product line targets faster testing turnaround in North America",
+      url: "https://simulated.meltwater.com/media/cleantech-product-launch",
+      reach: 9500,
+      region: "NA"
+    },
+    {
+      company: "EcoTest Solutions",
+      sentiment: "Positive",
+      title: "European clients applaud enhanced customer support initiatives",
+      url: "https://simulated.meltwater.com/media/ecotest-eu-support",
+      reach: 14000,
+      region: "EU"
+    }
+  ];
+
+  async function fetchMeltwaterData() {
+    // In production: fetch from Meltwater API here
+    return simulatedMeltwaterMentions;
+  }
+
+  function renderBenchmarkTable(meltwaterData) {
+    const tableBody = document.getElementById("benchmark-table-body");
+    tableBody.innerHTML = "";
+
+    let regionFilter = document.getElementById("filter-region").value;
+    // Treat "Global" and "All" as matching all regions
+    let filtered = meltwaterData.filter(d =>
+      regionFilter === "all" ||
+      d.region === regionFilter ||
+      d.region === "Global" ||
+      d.region === "All"
+    );
+
+    filtered.forEach(item => {
+      let tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${item.company}</td>
+        <td>${item.reach}</td>
+        <td class="sentiment-${item.sentiment.toLowerCase()}">${item.sentiment}</td>
+        <td><a href="${item.url}" target="_blank" rel="noopener">${item.title}</a></td>
+        <td>${item.region}</td>
+      `;
+      tableBody.appendChild(tr);
+    });
+
+    const noteRow = document.createElement("tr");
+    noteRow.innerHTML = `<td colspan="5" style="color:#888;font-style:italic;">
+      Data above is simulated based on representative Meltwater API outputs. Real-time intelligence requires Meltwater access.
+    </td>`;
+    tableBody.appendChild(noteRow);
+  }
+
+  function generateStrategicReport(meltwaterData) {
+    const reportDiv = document.getElementById("strategic-report");
+
+    // STRATEGIC INSIGHTS section
+    const highlights = meltwaterData
+      .map(item => `- [${item.sentiment}] ${item.company}: "${item.title}" (Reach ${item.reach}, ${item.region})`)
+      .join('\n');
+
+    // For Analysis and Recommendations, gather regional data and issues
+    // Extract company mentions by region and sentiment
+    const apacItems = meltwaterData.filter(d => d.region === "APAC");
+    const euItems = meltwaterData.filter(d => d.region === "EU");
+    const naItems = meltwaterData.filter(d => d.region === "NA");
+    const globalItems = meltwaterData.filter(d => d.region === "Global" || d.region === "All");
+
+    const analysisText =
+`ALS's global value proposition and regional messaging frameworks must address the competitive and market trends as detailed below:
+
+ASIA-PACIFIC (APAC):
+- ALS holds a leadership position in sustainability recognition, exemplified by recent reports.
+- Competitors like Mineral Insights highlight steady mineral testing demand.
+- Regulatory compliance remains critical to maintain ALS's leading market status.
+
+EUROPE (EU):
+- Competitors such as EcoTest Solutions show mixed market performance but have gained traction with improved customer support.
+- ALS should reinforce superior client engagement and service quality in messaging.
+
+NORTH AMERICA (NA):
+- CleanTech Labs faces regulatory challenges yet innovates with faster testing solutions.
+- ALS must focus on agility in its product offerings and regulatory adherence.
+
+GLOBAL:
+- Industry trends point to increased adoption of AI and evolving environmental standards.
+- Inconsistent reporting standards pose challenges that require robust, innovative solutions.
+
+Customer trend analysis at the market level indicates a growing demand for rapid and reliable services aligned with sustainability goals across all regions. ALS must leverage these insights for regional strategy adaptation.`;
+
+    const recommendationsText =
+`To address these regional dynamics and competitive factors, ALS should:
+
+- In APAC, enhance compliance efforts and promote ALS's sustainability leadership through strategic stakeholder engagement and tailored communications.
+- In Europe, focus on elevating client service experiences and closely monitor competitor strategies for differentiation opportunities.
+- In North America, invest in rapid testing technologies and reinforce ALS’s reputation for accuracy and environmental stewardship.
+- Globally, expand AI-driven marketing and operational capabilities to improve personalization, efficiency, and ethical governance.
+- Strengthen horizon scanning and competitor intelligence processes to enable agile corporate and business unit strategic responses.
+- Foster collaboration across business streams to ensure cohesive and regionally adapted value propositions and messaging.`;
+
+    const fullReport = 
+`➣  STRATEGIC INSIGHTS
+
+Highlights:
+${highlights}
+
+➣  ANALYSIS
+
+${analysisText}
+
+➣  RECOMMENDATIONS
+
+${recommendationsText}
+
+➣  NOTE: Data sourced from simulated Meltwater API results. For actionable, real-time intelligence, integrate with Meltwater service.`;
+
+    reportDiv.textContent = fullReport;
+  }
+
+  async function updateDashboardAndReport() {
+    const data = await fetchMeltwaterData();
+    renderBenchmarkTable(data);
+    populateAggregatedFeed(data);
+    generateStrategicReport(data);
+  }
+
+  function populateAggregatedFeed(meltwaterData) {
+    const feed = document.getElementById("aggregated-feed");
+    feed.innerHTML = "";
+    meltwaterData.forEach(item => {
+      let p = document.createElement("p");
+      p.textContent = `• ${item.company} (${item.sentiment}): ${item.title}`;
+      feed.appendChild(p);
+    });
+  }
+
+  // Spinners for Refresh and Generate Report
+  const refreshButton = document.getElementById("refresh-data");
+  const refreshSpinner = document.getElementById("refresh-spinner");
+
+  refreshButton.addEventListener("click", () => {
+    refreshSpinner.style.display = "inline-block";
+    refreshButton.disabled = true;
+    setTimeout(async () => {
+      await updateDashboardAndReport();
+      refreshSpinner.style.display = "none";
+      refreshButton.disabled = false;
+    }, 5000);
+  });
+
+  const generateReportBtn = document.getElementById("generate-report");
+  const generateSpinner = document.getElementById("generate-spinner");
+
+  generateReportBtn.addEventListener("click", () => {
+    generateSpinner.style.display = "inline-block";
+    generateReportBtn.disabled = true;
+    setTimeout(async () => {
+      const data = await fetchMeltwaterData();
+      generateStrategicReport(data);
+      generateSpinner.style.display = "none";
+      generateReportBtn.disabled = false;
+    }, 3000);
+  });
+
+  // Export report button
+  document.getElementById("export-report").addEventListener("click", () => {
+    const text = document.getElementById("strategic-report").textContent;
+    if (!text || text.includes("No report generated")) {
+      alert("Please generate the report before exporting.");
+      return;
+    }
+    const blob = new Blob([text], {type: 'text/plain'});
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `Strategic_CC_Analyzer_Report_${new Date().toISOString().slice(0,10)}.txt`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  });
+
+  // Region filter listener
+  document.getElementById("filter-region").addEventListener("change", async () => {
+    const data = await fetchMeltwaterData();
+    renderBenchmarkTable(data);
+  });
+
+  // Initial load
+  updateDashboardAndReport();
+</script>
+</body>
+</html>
