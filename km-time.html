@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Time & Mileage Tracker</title>
+<style>
+  body { font-family: Arial, sans-serif; margin: 20px; }
+  table { border-collapse: collapse; width: 100%; max-width: 900px; margin-bottom: 20px; }
+  th, td { border: 1px solid #ccc; padding: 8px; text-align: center; vertical-align: middle; }
+  th { background-color: #f4f4f4; }
+  input[type="time"], input[type="date"], input[type="number"], input[type="text"], textarea {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  textarea { height: 70px; resize: vertical; }
+  tfoot td { font-weight: bold; }
+  .checkbox-center { text-align: center; }
+  .tasks-col { width: 200px; } /* Tasks column wider */
+  .total-time-col,
+  .total-mileage-col {
+    width: 90px;
+  }
+  label.weekOfLabel {
+    font-weight: bold;
+    margin-right: 8px;
+  }
+  #weekOfContainer {
+    margin-bottom: 15px;
+    max-width: 900px;  /* Same as table max-width */
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  #weekOfContainer > div {
+    display: flex;
+    align-items: center;
+  }
+  #authDownloadContainer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: auto;
+  }
+  #codeInput {
+    width: 70px;
+    font-family: monospace;
+    letter-spacing: 4px;
+    padding: 8px 12px;
+    font-size: 1rem;
+  }
+  #downloadBtn {
+    padding: 8px 16px;
+    font-size: 1rem;
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+
+<h2>Weekly Time & Mileage Tracker</h2>
+
+<div id="weekOfContainer">
+  <div>
+    <label for="weekOf" class="weekOfLabel">Week&nbspOf:</label>
+    <input type="date" id="weekOf" />
+  </div>
+  <div id="authDownloadContainer">
+    <input type="password" id="codeInput" maxlength="4" placeholder="Code" title="Enter 4-digit code to edit" />
+    <button id="downloadBtn">Download Weekly Data</button>
+  </div>
+</div>
+
+<table id="timeMileageTable">
+  <thead>
+    <tr>
+      <th>Day</th>
+      <th>Date</th>
+      <th>Start Time</th>
+      <th>End Time</th>
+      <th class="total-time-col">Total&nbspTime (hrs)</th>
+      <th>Start Mileage</th>
+      <th>End Mileage</th>
+      <th class="total-mileage-col">Total Mileage</th>
+      <th class="tasks-col">Tasks</th>
+    </tr>
+  </thead>
+  <tbody>
+    <!-- Rows get inserted here by JS -->
+  </tbody>
+  <tfoot>
+    <tr>
+      <td colspan="4" style="text-align:right;">Weekly Totals:</td>
+      <td id="weeklyTotalTime" class="total-time-col">0.00</td>
+      <td colspan="2" style="text-align:right;">Mileage Total:</td>
+      <td id="weeklyTotalMileage" class="total-mileage-col">0</td>
+      <td class="checkbox-center">
+        <label>Paid <input type="checkbox" id="paidCheck" /></label>
+      </td>
+    </tr>
+  </tfoot>
+</table>
+
+<script>
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+  const tbody = document.querySelector("#timeMileageTable tbody");
+  const weekOfInput = document.getElementById("weekOf");
+  const downloadBtn = document.getElementById("downloadBtn");
+  const codeInput = document.getElementById("codeInput");
+  const paidCheckbox = document.getElementById("paidCheck");
+
+  const SECRET_CODE = "9365";
+
+  function createRows() {
+    tbody.innerHTML = "";
+
+    days.forEach(day => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${day}</td>
+        <td><input type="date" /></td>
+        <td><input type="time" /></td>
+        <td><input type="time" /></td>
+        <td class="total-time-col"><input type="number" readonly step="0.01" min="0" value="0" /></td>
+        <td><input type="number" min="0" /></td>
+        <td><input type="number" min="0" /></td>
+        <td class="total-mileage-col"><input type="number" readonly min="0" value="0" /></td>
+        <td><textarea placeholder="Describe tasks..." class="tasks-col"></textarea></td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  createRows();
+
+  function updateEditableState(canEdit) {
+    tbody.querySelectorAll("tr").forEach(row => {
+      for (let i=1; i <= 3; i++) {
+        const input = row.cells[i].querySelector("input");
+        if (input) input.readOnly = !canEdit;
+      }
+      row.cells[4].querySelector("input").readOnly = true;
+      row.cells[7].querySelector("input").readOnly = true;
+
+      for (let i=5; i <= 6; i++) {
+        const input = row.cells[i].querySelector("input");
+        if (input) input.readOnly = !canEdit;
+      }
+
+      const textarea = row.cells[8].querySelector("textarea");
+      if (textarea) textarea.readOnly = !canEdit;
+    });
+
+    weekOfInput.readOnly = !canEdit;
+  }
+
+  function calculate() {
+    let totalTime = 0;
+    let totalMileage = 0;
+
+    tbody.querySelectorAll("tr").forEach(row => {
+      const startTimeInput = row.cells[2].querySelector("input");
+      const endTimeInput = row.cells[3].querySelector("input");
+      const totalTimeInput = row.cells[4].querySelector("input");
+
+      const startMileageInput = row.cells[5].querySelector("input");
+      const endMileageInput = row.cells[6].querySelector("input");
+      const totalMileageInput = row.cells[7].querySelector("input");
+
+      let totalHrs = 0;
+      if (startTimeInput.value && endTimeInput.value) {
+        const start = new Date(`1970-01-01T${startTimeInput.value}:00`);
+        let end = new Date(`1970-01-01T${endTimeInput.value}:00`);
+        if (end < start) {
+          end.setDate(end.getDate() + 1);
+        }
+        const diffMs = end - start;
+        totalHrs = diffMs / (1000 * 60 * 60);
+      }
+      totalTimeInput.value = totalHrs.toFixed(2);
+      totalTime += totalHrs;
+
+      let mileage = 0;
+      const startMile = parseFloat(startMileageInput.value);
+      const endMile = parseFloat(endMileageInput.value);
+      if (!isNaN(startMile) && !isNaN(endMile) && endMile >= startMile) {
+        mileage = endMile - startMile;
+      }
+      totalMileageInput.value = mileage.toFixed(1);
+      totalMileage += mileage;
+    });
+
+    document.getElementById("weeklyTotalTime").textContent = totalTime.toFixed(2);
+    document.getElementById("weeklyTotalMileage").textContent = totalMileage.toFixed(1);
+  }
+
+  tbody.addEventListener("input", e => {
+    if (e.target.matches("input[type='time'], input[type='number'], input[type='date'], textarea")) {
+      calculate();
+    }
+  });
+
+  codeInput.addEventListener("input", () => {
+    const code = codeInput.value.trim();
+    if (code === SECRET_CODE) {
+      updateEditableState(true);
+      codeInput.style.borderColor = "green";
+    } else {
+      updateEditableState(false);
+      codeInput.style.borderColor = "";
+    }
+  });
+
+  updateEditableState(false);
+
+  downloadBtn.addEventListener("click", () => {
+    const weekOf = weekOfInput.value;
+    if (!weekOf) {
+      alert("Please select the 'Week Of' date before downloading.");
+      return;
+    }
+    const dateHeader = `Week Of: ${weekOf}\n\n`;
+    let content = dateHeader;
+    content += "Day | Date | Start Time | End Time | Total Time (hrs) | Start Mileage | End Mileage | Total Mileage | Tasks\n";
+    content += "-".repeat(110) + "\n";
+
+    tbody.querySelectorAll("tr").forEach(row => {
+      const day = row.cells[0].textContent;
+      const date = row.cells[1].querySelector("input").value || "";
+      const startTime = row.cells[2].querySelector("input").value || "";
+      const endTime = row.cells[3].querySelector("input").value || "";
+      const totalTime = row.cells[4].querySelector("input").value || "0.00";
+      const startMileage = row.cells[5].querySelector("input").value || "";
+      const endMileage = row.cells[6].querySelector("input").value || "";
+      const totalMileage = row.cells[7].querySelector("input").value || "0.0";
+      const tasks = row.cells[8].querySelector("textarea").value.trim().replace(/\r?\n/g, " ");
+
+      content += `${day} | ${date} | ${startTime} | ${endTime} | ${totalTime} | ${startMileage} | ${endMileage} | ${totalMileage} | ${tasks}\n`;
+    });
+
+    const totalTimeWeek = document.getElementById("weeklyTotalTime").textContent;
+    const totalMileageWeek = document.getElementById("weeklyTotalMileage").textContent;
+    const paidChecked = document.getElementById("paidCheck").checked ? "Yes" : "No";
+
+    content += "\n";
+    content += `Weekly Total Time (hrs): ${totalTimeWeek}\n`;
+    content += `Weekly Total Mileage: ${totalMileageWeek}\n`;
+    content += `Paid: ${paidChecked}\n`;
+
+    const filename = `WeekOf_${weekOf}.txt`;
+
+    const blob = new Blob([content], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.style.display = "none";
+
+    document.body.appendChild(a);
+    a.click();
+
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 0);
+  });
+</script>
+
+</body>
+</html>
