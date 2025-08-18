@@ -27,7 +27,7 @@
   }
   #weekOfContainer {
     margin-bottom: 15px;
-    max-width: 900px;  /* Same as table max-width */
+    max-width: 900px;  /* Match table width */
     width: 100%;
     display: flex;
     justify-content: space-between;
@@ -50,7 +50,7 @@
     padding: 8px 12px;
     font-size: 1rem;
   }
-  #downloadBtn {
+  #downloadBtn, #resetBtn {
     padding: 8px 16px;
     font-size: 1rem;
     cursor: pointer;
@@ -63,12 +63,13 @@
 
 <div id="weekOfContainer">
   <div>
-    <label for="weekOf" class="weekOfLabel">Week&nbspOf:</label>
+    <label for="weekOf" class="weekOfLabel">Week Of:</label>
     <input type="date" id="weekOf" />
   </div>
   <div id="authDownloadContainer">
+    <button id="resetBtn" disabled>Reset Data</button>
     <input type="password" id="codeInput" maxlength="4" placeholder="Code" title="Enter 4-digit code to edit" />
-    <button id="downloadBtn">Download Weekly Data</button>
+    <button id="downloadBtn">Download Week Data</button>
   </div>
 </div>
 
@@ -79,7 +80,7 @@
       <th>Date</th>
       <th>Start Time</th>
       <th>End Time</th>
-      <th class="total-time-col">Total&nbspTime (hrs)</th>
+      <th class="total-time-col">Total Time (hrs)</th>
       <th>Start Mileage</th>
       <th>End Mileage</th>
       <th class="total-mileage-col">Total Mileage</th>
@@ -107,14 +108,16 @@
   const tbody = document.querySelector("#timeMileageTable tbody");
   const weekOfInput = document.getElementById("weekOf");
   const downloadBtn = document.getElementById("downloadBtn");
+  const resetBtn = document.getElementById("resetBtn");
   const codeInput = document.getElementById("codeInput");
   const paidCheckbox = document.getElementById("paidCheck");
 
-  const SECRET_CODE = "9365";
+  const SECRET_CODE = "1234"; // Customize your code here
+  const STORAGE_KEY = "timeMileageAppData";
 
+  // Create the rows for each day
   function createRows() {
     tbody.innerHTML = "";
-
     days.forEach(day => {
       const tr = document.createElement("tr");
       tr.innerHTML = `
@@ -132,29 +135,86 @@
     });
   }
 
-  createRows();
+  // Save current data to localStorage
+  function saveData() {
+    const data = {
+      weekOf: weekOfInput.value,
+      paid: paidCheckbox.checked,
+      rows: []
+    };
+    tbody.querySelectorAll("tr").forEach(row => {
+      data.rows.push({
+        date: row.cells[1].querySelector("input").value,
+        startTime: row.cells[2].querySelector("input").value,
+        endTime: row.cells[3].querySelector("input").value,
+        totalTime: row.cells[4].querySelector("input").value,
+        startMileage: row.cells[5].querySelector("input").value,
+        endMileage: row.cells[6].querySelector("input").value,
+        totalMileage: row.cells[7].querySelector("input").value,
+        tasks: row.cells[8].querySelector("textarea").value
+      });
+    });
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
 
+  // Load data from localStorage, if any
+  function loadData() {
+    const stored = localStorage.getItem(STORAGE_KEY);
+    if (!stored) return false;
+    try {
+      const data = JSON.parse(stored);
+      if (data.weekOf) weekOfInput.value = data.weekOf;
+      if (data.paid !== undefined) paidCheckbox.checked = data.paid;
+      if (data.rows && data.rows.length === days.length) {
+        tbody.querySelectorAll("tr").forEach((row, i) => {
+          const rowData = data.rows[i];
+          row.cells[1].querySelector("input").value = rowData.date || "";
+          row.cells[2].querySelector("input").value = rowData.startTime || "";
+          row.cells[3].querySelector("input").value = rowData.endTime || "";
+          row.cells[4].querySelector("input").value = rowData.totalTime || "0";
+          row.cells[5].querySelector("input").value = rowData.startMileage || "";
+          row.cells[6].querySelector("input").value = rowData.endMileage || "";
+          row.cells[7].querySelector("input").value = rowData.totalMileage || "0";
+          row.cells[8].querySelector("textarea").value = rowData.tasks || "";
+        });
+        calculate();
+        return true;
+      }
+    } catch {
+      // ignore errors and treat as no data
+    }
+    return false;
+  }
+
+  // Set readOnly attribute or remove it based on code input; keep Paid checkbox always enabled
   function updateEditableState(canEdit) {
     tbody.querySelectorAll("tr").forEach(row => {
-      for (let i=1; i <= 3; i++) {
+      for (let i=1; i <= 3; i++) { // Date, Start Time, End Time inputs
         const input = row.cells[i].querySelector("input");
         if (input) input.readOnly = !canEdit;
       }
+      // Total Time and Mileage always readonly
       row.cells[4].querySelector("input").readOnly = true;
       row.cells[7].querySelector("input").readOnly = true;
 
+      // Mileage inputs editable based on code
       for (let i=5; i <= 6; i++) {
         const input = row.cells[i].querySelector("input");
         if (input) input.readOnly = !canEdit;
       }
-
+      // Tasks textarea editable based on code
       const textarea = row.cells[8].querySelector("textarea");
       if (textarea) textarea.readOnly = !canEdit;
     });
 
+    // Week Of date input editable based on code
     weekOfInput.readOnly = !canEdit;
+
+    // Reset button enabled only if editable
+    resetBtn.disabled = !canEdit;
   }
 
+  // Calculate totals for each row and weekly totals
   function calculate() {
     let totalTime = 0;
     let totalMileage = 0;
@@ -193,13 +253,32 @@
 
     document.getElementById("weeklyTotalTime").textContent = totalTime.toFixed(2);
     document.getElementById("weeklyTotalMileage").textContent = totalMileage.toFixed(1);
+
+    // Save data whenever calculated (reflect latest)
+    saveData();
   }
 
+  // Initialize app
+  function init() {
+    createRows();
+    if (!loadData()) {
+      // No saved data, just calculate initially
+      calculate();
+    }
+    updateEditableState(false);
+  }
+  
+  init();
+
+  // Event listeners for dynamic calculation
   tbody.addEventListener("input", e => {
     if (e.target.matches("input[type='time'], input[type='number'], input[type='date'], textarea")) {
       calculate();
     }
   });
+
+  weekOfInput.addEventListener("input", saveData);
+  paidCheckbox.addEventListener("change", saveData);
 
   codeInput.addEventListener("input", () => {
     const code = codeInput.value.trim();
@@ -212,7 +291,24 @@
     }
   });
 
-  updateEditableState(false);
+  resetBtn.addEventListener("click", () => {
+    if (codeInput.value.trim() !== SECRET_CODE) {
+      alert("Enter the correct code to reset data.");
+      return;
+    }
+    if (!confirm("Are you sure you want to reset all data? This cannot be undone.")) return;
+
+    // Clear localStorage
+    localStorage.removeItem(STORAGE_KEY);
+
+    // Clear inputs
+    init();
+
+    // Clear code input and disable editing after reset
+    codeInput.value = "";
+    codeInput.style.borderColor = "";
+    updateEditableState(false);
+  });
 
   downloadBtn.addEventListener("click", () => {
     const weekOf = weekOfInput.value;
