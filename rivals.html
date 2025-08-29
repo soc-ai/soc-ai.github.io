@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+
+ <!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+
+  <title>Virtual Team of Rival Advisors</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <!-- TailwindCSS for styling -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { background: #f9fafc; }
+    .bubble { position:relative; }
+    .advisor-label { position: absolute; top: 8px; left: 14px; font-size: 1.08em; font-weight: 700; color: #2563eb; }
+    .copy-btn {
+      position: absolute; top: 10px; right: 14px; background: none; border: none;
+      font-size: 1.2em; color: #374151; cursor: pointer; opacity: 0.65;
+    }
+    .copy-btn:hover {opacity:1;}
+    .toast {
+      display: none;
+      position: fixed;
+      top: 35px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #2563eb;
+      color: #fff;
+      padding: 12px 32px;
+      border-radius: 7px;
+      font-size: 1.13em;
+      z-index: 2000;
+      min-width: 170px;
+      text-align: center;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
+      pointer-events:none;
+    }
+    @media (max-width: 1024px) {
+      .advisor-grid { flex-direction: column !important; }
+      .bubble { width: 95% !important; margin: 0.5rem auto !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+  <!-- Title/Header -->
+  <header class="bg-[#0f172a] text-white p-6 shadow text-2xl font-bold flex items-center gap-3">
+    <img src="ai.gif" class="h-8 w-8 rounded" alt="AI" />
+    Virtual Team of Rival Advisors
+  </header>
+
+  <main class="flex flex-col flex-1 w-full max-w-5xl mx-auto mt-7 px-2 pb-10">
+    <!-- Prompts for Each Expert -->
+    <section class="bg-white shadow rounded-lg p-5 mb-6">
+      <div class="mb-3 text-[#0f172a] font-semibold text-xl">Define Expert Personas (you may edit and enhance)</div>
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div>
+          <label for="philosopherPrompt" class="block text-sm font-bold text-blue-900 mb-1">Philosopher</label>
+          <textarea id="philosopherPrompt" class="w-full border border-blue-200 rounded p-2" rows="5">You are Philosopher, an AI advisor who is calm, detached, and non-confrontational. Always approach questions with a balanced perspective, discussing both sides of every issue, and never take an extreme stance.</textarea>
+        </div>
+        <div>
+          <label for="mbaPrompt" class="block text-sm font-bold text-blue-900 mb-1">MBA</label>
+          <textarea id="mbaPrompt" class="w-full border border-blue-200 rounded p-2" rows="5">You are MBA, an AI advisor who is assertive, excitable, and pushy. Always approach questions aggressively, focusing on maximizing success and growth, giving bold, enthusiastic recommendations for action.</textarea>
+        </div>
+        <div>
+          <label for="cassandraPrompt" class="block text-sm font-bold text-blue-900 mb-1">Cassandra</label>
+          <textarea id="cassandraPrompt" class="w-full border border-blue-200 rounded p-2" rows="5">You are Cassandra, an AI advisor who is negative, detached, and always cautious. Approach every question with skepticism, highlighting risks, pitfalls and downsides. Never offer false hope and always emphasize what could go wrong.</textarea>
+        </div>
+      </div>
+    </section>
+
+    <!-- Chat display -->
+    <section id="chatHistory" class="flex flex-col gap-8">
+      <!-- Each user/expert exchange will be appended here -->
+    </section>
+    
+    <!-- Entry area for question -->
+    <form id="chatForm" class="mt-4 flex flex-col sm:flex-row items-center bg-white rounded shadow px-4 py-3 gap-2" autocomplete="off">
+      <div class="flex-1 flex flex-row items-center w-full">
+        <input id="chatInput" type="text" required autocomplete="off" placeholder="What is your strategic dilemma or question?" class="w-full px-3 py-2 rounded border border-gray-300 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-lg" />
+        <img id="typingSpinner" src="spinner.gif" alt="Loading..." class="h-7 w-7 mx-2" style="display:none;">
+        <button id="submitBtn" type="submit" class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg" aria-label="Submit question">
+          ➣
+        </button>
+      </div>
+    </form>
+    <div id="toast" class="toast"></div>
+  </main>
+
+  <script>
+    // --- Together.ai config ---
+    const TOGETHER_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ";
+    const TOGETHER_MODEL = "deepseek-ai/DeepSeek-R1";
+
+    // Persona/config
+    function getPrompts() {
+      return {
+        Philosopher: document.getElementById("philosopherPrompt").value.trim(),
+        MBA: document.getElementById("mbaPrompt").value.trim(),
+        Cassandra: document.getElementById("cassandraPrompt").value.trim()
+      }
+    }
+
+    // Message history
+    let chatExchanges = [];  // [{user, Philosopher, MBA, Cassandra}, ...]
+
+    // Display toast
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(showToast._timeout);
+      showToast._timeout = setTimeout(()=>{toast.style.display="none"},1200);
+    }
+
+    // Copy button logic
+    function setupCopyBtns() {
+      document.querySelectorAll(".copy-btn").forEach(btn => {
+        btn.onclick = async function() {
+          const val = btn.getAttribute("data-copy");
+          await navigator.clipboard.writeText(val || "");
+          showToast("Copied!");
+        };
+      })
+    }
+
+    // Render all exchanges
+    function renderHistory() {
+      const container = document.getElementById("chatHistory");
+      container.innerHTML = "";
+      chatExchanges.forEach(ex => {
+        // User turn
+        const userDiv = document.createElement("div");
+        userDiv.className = "my-2 flex justify-center";
+        userDiv.innerHTML = `<div class="text-md font-semibold text-gray-800 bg-blue-50 border border-blue-100 rounded px-5 py-3 max-w-[700px]">${ex.user}</div>`;
+        container.appendChild(userDiv);
+
+        // Advisor turns
+        const row = document.createElement("div");
+        row.className = "advisor-grid flex flex-row gap-4 justify-center";
+        ["Philosopher", "MBA", "Cassandra"].forEach(advisor => {
+          // Random subtle color for bubble
+          let bg = advisor === "Philosopher" ? "bg-gray-50" : (advisor === "MBA" ? "bg-green-50" : "bg-pink-50");
+          let txt = advisor === "Philosopher" ? "text-gray-800" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
+          const val = ex[advisor] || "<span class='italic text-gray-400'>[no response]</span>";
+          // Compose HTML
+          const bubble = document.createElement("div");
+          bubble.className = `bubble relative shadow-sm ${bg} ${txt} rounded-lg p-5 text-base w-[350px] min-h-[115px] border border-gray-200`;
+          bubble.innerHTML = `
+            <span class="advisor-label">${advisor}</span>
+            <button class="copy-btn" data-copy="${val.replace(/"/g, '&quot;')}" title="Copy answer">⧉</button>
+            <div style="margin-top:2.7em; white-space:pre-line;">${val}</div>
+          `;
+          row.appendChild(bubble);
+        });
+        container.appendChild(row);
+      });
+      setupCopyBtns();
+    }
+
+    // Spinner helpers
+    function setSpinner(on) {
+      document.getElementById("typingSpinner").style.display = on ? "" : "none";
+    }
+
+    // Together API call, per advisor
+    async function askTogether(expertPrompt, question) {
+      const systemMsg = expertPrompt;
+      const chat = [
+        { role: "system", content: systemMsg },
+        { role: "user", content: question }
+      ];
+      try {
+        const res = await fetch("https://api.together.ai/v1/chat/completions", {
+          method: "POST",
+          headers: {
+            "Authorization": "Bearer " + TOGETHER_KEY,
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            model: TOGETHER_MODEL,
+            messages: chat,
+            temperature: 0.7,
+            max_tokens: 512
+          })
+        });
+        let data;
+        try {
+          data = await res.json();
+        } catch (e) {
+          return "[Invalid LLM response]";
+        }
+        if (!res.ok) {
+          if (data && data.error && data.error.message)
+            return "[Error] " + data.error.message;
+          return `[LLM Error ${res.status}]`;
+        }
+        let txt = data.choices?.[0]?.message?.content?.trim();
+        return txt || "[no answer]";
+      } catch (err) {
+        return "[Network error: " + err.message + "]";
+      }
+    }
+
+    // Submit handler
+    document.getElementById("chatForm").onsubmit = async function(e) {
+      e.preventDefault();
+      const question = document.getElementById("chatInput").value.trim();
+      if (!question) return;
+      setSpinner(true);
+      document.getElementById("chatInput").disabled = true;
+      let prompts = getPrompts();
+
+      // run all 3 in parallel
+      const [resp1, resp2, resp3] = await Promise.all([
+        askTogether(prompts.Philosopher, question),
+        askTogether(prompts.MBA, question),
+        askTogether(prompts.Cassandra, question)
+      ]);
+      chatExchanges.push({ user: question, Philosopher: resp1, MBA: resp2, Cassandra: resp3 });
+      renderHistory();
+      setSpinner(false);
+      document.getElementById("chatInput").value = "";
+      document.getElementById("chatInput").disabled = false;
+      document.getElementById("chatInput").focus();
+    };
+
+    // Initial blank display
+    renderHistory();
+
+    // Enter key submits
+    document.getElementById("chatInput").addEventListener("keydown", e=>{
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        document.getElementById("chatForm").requestSubmit();
+      }
+    });
+  </script>
+</body>
+</html>
