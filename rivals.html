@@ -18,8 +18,7 @@
     }
     .copy-btn:hover {opacity:1;}
     .toast {
-      display: none;
-      position: fixed; top: 35px; left: 50%;
+      display: none; position: fixed; top: 35px; left: 50%;
       transform: translateX(-50%);
       background: #2563eb; color: #fff;
       padding: 12px 32px; border-radius: 7px; font-size: 1.12em;
@@ -86,6 +85,7 @@
 </header>
 
 <main class="flex flex-col flex-1 w-full max-w-5xl mx-auto mt-7 px-2 pb-10">
+
   <!-- Prompts for Each Expert -->
   <section class="bg-white shadow rounded-lg p-5 mb-6">
     <div class="mb-3 text-[#0f172a] font-semibold text-xl">Define Expert Personas (you may edit and enhance)</div>
@@ -107,21 +107,24 @@
 
   <!-- Chat display -->
   <section id="chatHistory" class="flex flex-col gap-8">
-    <!-- Each user/expert exchange will be appended here -->
+    <!-- Messages and answers appended here -->
   </section>
 
-  <!-- Entry area for question -->
+  <!-- Entry and buttons -->
   <form id="chatForm" class="mt-4 flex flex-col sm:flex-row items-center bg-white rounded shadow px-4 py-3 gap-2" autocomplete="off">
     <div class="flex-1 flex flex-row items-center w-full">
-      <input id="chatInput" type="text" required autocomplete="off"
-        placeholder="What is your strategic dilemma or question?"
-        class="w-full px-3 py-2 rounded border border-gray-300 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-lg" />
-      <img id="typingSpinner" src="spinner.gif" alt="Loading..." class="h-7 w-7 mx-2" style="display:none;">
-      <button id="submitBtn" type="submit"
-        class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg"
-        aria-label="Submit question">➣</button>
+      <input id="chatInput" type="text" required autocomplete="off" placeholder="What is your strategic dilemma or question?" class="w-full px-3 py-2 rounded border border-gray-300 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-lg" />
+      <button id="submitBtn" type="submit" class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg" aria-label="Send question">
+        ➣
+        <img id="submitSpinner" src="spinner.gif" alt="Loading" class="hidden w-6 h-6" />
+      </button>
+      <button id="roundRobinBtn" type="button" class="bg-green-700 hover:bg-green-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg ml-2" aria-label="Round Robin" disabled>
+        Round Robin
+        <img id="roundRobinSpinner" src="spinner.gif" alt="Loading" class="hidden w-8 h-8" />
+      </button>
     </div>
   </form>
+
   <div id="toast" class="toast"></div>
 </main>
 
@@ -131,6 +134,7 @@
     <button id="helpModalClose" aria-label="Close help popup">&times;</button>
     <h2 id="helpModalTitle" class="text-2xl font-bold mb-4">About Virtual Team of Rival Advisors</h2>
     <p>This app uses three AI experts with distinct personalities (Philosopher, MBA, Cassandra) to answer your strategic questions. Enter a question and see the varied advice each expert provides.</p>
+<p>Use the Round Robin button to ask the experts to respond to EACH OTHER'S responses for a Team of Rivals experience.</p>
     <p>You can edit each expert's persona prompt before asking a question to tailor their style and approach.</p>
     <p>Answers can be copied to clipboard using the ⧉ button in each expert's response bubble. The copied text will include an expert label.</p>
     <p>The app queries Together.ai’s powerful AI models sequentially to avoid rate limits during experimental usage.</p>
@@ -139,7 +143,6 @@
 </div>
 
 <script>
-  // --- Together.ai config ---
   const TOGETHER_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ";
   const TOGETHER_MODEL = "deepseek-ai/DeepSeek-V3.1";
 
@@ -151,54 +154,50 @@
     }
   }
 
-  // Message history
-  let chatExchanges = []; // [{user, Philosopher, MBA, Cassandra}, ...]
+  let chatExchanges = [];
+  let lastRound1Answers = null;
 
-  // Display toast
   function showToast(msg) {
     const toast = document.getElementById("toast");
     toast.textContent = msg;
     toast.style.display = "block";
     clearTimeout(showToast._timeout);
-    showToast._timeout = setTimeout(()=>{toast.style.display="none"},1200);
+    showToast._timeout = setTimeout(() => { toast.style.display = "none"; }, 1200);
   }
 
-  // Copy button logic (enhanced to prepend expert's name)
   function setupCopyBtns() {
     document.querySelectorAll(".copy-btn").forEach(btn => {
-      btn.onclick = async function() {
+      btn.onclick = async function () {
         const bubble = btn.closest(".bubble");
         const expertNameElem = bubble.querySelector(".advisor-label");
-        const expertName = expertNameElem ? expertNameElem.textContent.trim() : "Expert";
+        const expertName = expertNameElem ? expertNameElem.textContent.trim().replace(" Round Robin", "") : "Expert";
+        const round = bubble.closest(".round-robin") ? "Round Robin" : "First Round";
         const val = btn.getAttribute("data-copy") || "";
-        const textToCopy = `Response from ${expertName}:\n\n${val}`;
+        const textToCopy = `Response Expert ${expertName} ${round}:\n\n${val}`;
         try {
           await navigator.clipboard.writeText(textToCopy);
           showToast("Copied!");
-        } catch(err) {
+        } catch (err) {
           alert("Failed to copy: " + err);
         }
       };
     });
   }
 
-  // Render all exchanges
   function renderHistory() {
     const container = document.getElementById("chatHistory");
     container.innerHTML = "";
     chatExchanges.forEach(ex => {
-      // User turn
       const userDiv = document.createElement("div");
       userDiv.className = "my-2 flex justify-center";
       userDiv.innerHTML = `<div class="text-md font-semibold text-gray-800 bg-blue-50 border border-blue-100 rounded px-5 py-3 max-w-[700px]">${ex.user}</div>`;
       container.appendChild(userDiv);
-      // Advisor turns
-      const row = document.createElement("div");
-      row.className = "advisor-grid flex flex-row gap-4 justify-center";
-      ["Philosopher","MBA","Cassandra"].forEach(advisor=>{
-        // Bubble color
-        let bg = advisor === "Philosopher" ? "bg-gray-50" : (advisor === "MBA" ? "bg-green-50" : "bg-pink-50");
-        let txt = advisor === "Philosopher" ? "text-gray-800" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
+
+      const firstRoundDiv = document.createElement("div");
+      firstRoundDiv.className = "advisor-grid flex flex-row gap-4 justify-center mb-6 first-round";
+      ["Philosopher", "MBA", "Cassandra"].forEach(advisor => {
+        const bg = advisor === "Philosopher" ? "bg-gray-50" : (advisor === "MBA" ? "bg-green-50" : "bg-pink-50");
+        const txt = advisor === "Philosopher" ? "text-gray-800" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
         const val = ex[advisor] || "<span class='italic text-gray-400'>[no response]</span>";
         const bubble = document.createElement("div");
         bubble.className = `bubble relative shadow-sm ${bg} ${txt} rounded-lg p-5 text-base w-[350px] min-h-[115px] border border-gray-200`;
@@ -207,22 +206,35 @@
           <button class="copy-btn" data-copy="${val.replace(/"/g, '&quot;')}" title="Copy answer">⧉</button>
           <div style="margin-top:2.7em; white-space:pre-line;">${val}</div>
         `;
-        row.appendChild(bubble);
+        firstRoundDiv.appendChild(bubble);
       });
-      container.appendChild(row);
+      container.appendChild(firstRoundDiv);
+
+      if (ex.roundRobin) {
+        const rrDiv = document.createElement("div");
+        rrDiv.className = "advisor-grid flex flex-row gap-4 justify-center round-robin";
+        ["Philosopher", "MBA", "Cassandra"].forEach(advisor => {
+          const bg = advisor === "Philosopher" ? "bg-gray-100" : (advisor === "MBA" ? "bg-green-100" : "bg-pink-100");
+          const txt = advisor === "Philosopher" ? "text-gray-900" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
+          const val = ex.roundRobin[advisor] || "<span class='italic text-gray-400'>[no round robin response]</span>";
+          const bubble = document.createElement("div");
+          bubble.className = `bubble relative shadow-lg ${bg} ${txt} rounded-lg p-5 text-base w-[350px] min-h-[115px] border border-gray-300`;
+          bubble.innerHTML = `
+            <span class="advisor-label">${advisor} Round Robin</span>
+            <button class="copy-btn" data-copy="${val.replace(/"/g, "&quot;")}" title="Copy answer">⧉</button>
+            <div style="margin-top:2.7em; white-space:pre-line;">${val}</div>
+          `;
+          rrDiv.appendChild(bubble);
+        });
+        container.appendChild(rrDiv);
+      }
     });
     setupCopyBtns();
   }
 
-  function setSpinner(on) {
-    document.getElementById("typingSpinner").style.display = on ? "" : "none";
-  }
-
-  // Together API call, one advisor
   async function askTogether(expertPrompt, question) {
-    const systemMsg = expertPrompt;
     const chat = [
-      { role: "system", content: systemMsg },
+      { role: "system", content: expertPrompt },
       { role: "user", content: question }
     ];
     try {
@@ -240,52 +252,68 @@
         })
       });
       let data;
-      try { data = await res.json(); } catch(e) { return "[Invalid LLM response]"; }
-      if(!res.ok){
-        if(data && data.error && data.error.message)
-          return "[Error] " + data.error.message;
+      try { data = await res.json(); } catch (e) { return "[Invalid LLM response]"; }
+      if (!res.ok) {
+        if (data && data.error && data.error.message) return "[Error] " + data.error.message;
         return `[LLM Error ${res.status}]`;
       }
-      let txt = data.choices?.[0]?.message?.content?.trim();
-      return txt || "[no answer]";
+      return data.choices?.[0]?.message?.content?.trim() || "[no answer]";
     } catch (err) {
-      return "[Network error: "+err.message+"]";
+      return "[Network error: " + err.message + "]";
     }
   }
 
-  // Sequential/staggered requests with delay
+  function delay(ms) {
+    return new Promise(res => setTimeout(res, ms));
+  }
+
   async function queryAllAdvisors(question) {
     const prompts = getPrompts();
     const advisors = ["Philosopher", "MBA", "Cassandra"];
     const answers = {};
-    for (let i=0; i<advisors.length; ++i) {
-      const adv = advisors[i];
+    for (let adv of advisors) {
       answers[adv] = await askTogether(prompts[adv], question);
-      renderPartialHistory(question, answers); // Show responses as they arrive
-      await delay(1800); // ~2sec between calls to reduce rate-limit risk
+      renderPartialHistory(question, answers);
+      await delay(1800);
     }
     return answers;
   }
-  function delay(ms) { return new Promise(res=>setTimeout(res,ms)); }
 
-  // Partial render so answers appear as they arrive
-  function renderPartialHistory(question, answers){
+  async function queryRoundRobin(question, round1Answers) {
+    const prompts = getPrompts();
+    const advisors = ["Philosopher", "MBA", "Cassandra"];
+    const rrAnswers = {};
+    for (let adv of advisors) {
+      const others = advisors.filter(a => a !== adv);
+      let promptText = prompts[adv] + "\n\n";
+      promptText += `Original question: ${question}\n\n`;
+      promptText += `Other experts' answers from first round:\n`;
+      for (let other of others) {
+        promptText += `${other} said:\n${round1Answers[other]}\n\n`;
+      }
+      promptText += `Please analyze and give your thoughtful follow-up opinion.`;
+      rrAnswers[adv] = await askTogether(promptText, question);
+      renderRoundRobinPartialHistory(question, lastRound1Answers, rrAnswers);
+      await delay(1800);
+    }
+    return rrAnswers;
+  }
+
+  function renderPartialHistory(question, answers) {
     const container = document.getElementById("chatHistory");
     let lastRow = container.lastChild;
-    if (lastRow && lastRow.classList?.contains('advisor-grid')) {
-      // Remove last answers and user question bubbles
+    if (lastRow && lastRow.classList.contains("advisor-grid")) {
       container.removeChild(lastRow);
       container.removeChild(container.lastChild);
     }
-    // User bubble
     const userDiv = document.createElement("div");
     userDiv.className = "my-2 flex justify-center";
     userDiv.innerHTML = `<div class="text-md font-semibold text-gray-800 bg-blue-50 border border-blue-100 rounded px-5 py-3 max-w-[700px]">${question}</div>`;
     container.appendChild(userDiv);
-    // Advisor row
+
     const row = document.createElement("div");
     row.className = "advisor-grid flex flex-row gap-4 justify-center";
-    ["Philosopher","MBA","Cassandra"].forEach(advisor=>{
+    ["Philosopher", "MBA", "Cassandra"].forEach(advisor => {
       const bg = advisor === "Philosopher" ? "bg-gray-50" : (advisor === "MBA" ? "bg-green-50" : "bg-pink-50");
       const txt = advisor === "Philosopher" ? "text-gray-800" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
       const val = answers[advisor] || "<span class='italic text-gray-400'>[waiting]</span>";
@@ -302,61 +330,87 @@
     setupCopyBtns();
   }
 
-  // Submit handler
-  document.getElementById("chatForm").onsubmit = async function(e) {
+  function renderRoundRobinPartialHistory(question, round1Answers, rrAnswers) {
+    const container = document.getElementById("chatHistory");
+    let existingRR = container.querySelector(".round-robin");
+    if (existingRR) {
+      container.removeChild(existingRR);
+    }
+    const rrDiv = document.createElement("div");
+    rrDiv.className = "advisor-grid flex flex-row gap-4 justify-center round-robin mt-6 mb-12";
+    ["Philosopher", "MBA", "Cassandra"].forEach(advisor => {
+      const bg = advisor === "Philosopher" ? "bg-gray-100" : (advisor === "MBA" ? "bg-green-100" : "bg-pink-100");
+      const txt = advisor === "Philosopher" ? "text-gray-900" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
+      const val = rrAnswers[advisor] || "<span class='italic text-gray-400'>[waiting for round robin response]</span>";
+      const bubble = document.createElement("div");
+      bubble.className = `bubble relative shadow-lg ${bg} ${txt} rounded-lg p-5 text-base w-[350px] min-h-[115px] border border-gray-300`;
+      bubble.innerHTML = `
+        <span class="advisor-label">${advisor} Round Robin</span>
+        <button class="copy-btn" data-copy="${val.replace(/"/g, "&quot;")}" title="Copy answer">⧉</button>
+        <div style="margin-top:2.7em; white-space:pre-line;">${val}</div>
+      `;
+      rrDiv.appendChild(bubble);
+    });
+    container.appendChild(rrDiv);
+    setupCopyBtns();
+  }
+
+  document.getElementById("chatForm").onsubmit = async function (e) {
     e.preventDefault();
     const question = document.getElementById("chatInput").value.trim();
     if (!question) return;
     setSpinner(true);
     document.getElementById("chatInput").disabled = true;
-    // Responses sequentially
-    const answers = await queryAllAdvisors(question);
-    chatExchanges.push({ user: question, Philosopher: answers.Philosopher, MBA: answers.MBA, Cassandra: answers.Cassandra });
+    document.getElementById("roundRobinBtn").disabled = false;
+    lastRound1Answers = await queryAllAdvisors(question);
+    chatExchanges.push({
+      user: question,
+      Philosopher: lastRound1Answers.Philosopher,
+      MBA: lastRound1Answers.MBA,
+      Cassandra: lastRound1Answers.Cassandra
+    });
     renderHistory();
     setSpinner(false);
     document.getElementById("chatInput").value = "";
     document.getElementById("chatInput").disabled = false;
-    document.getElementById("chatInput").focus();
   };
 
-  // Show typing spinner
+  document.getElementById("roundRobinBtn").addEventListener("click", async () => {
+    if (!lastRound1Answers) {
+      alert("Please submit a question first to generate initial expert answers.");
+      return;
+    }
+    setSpinner(true);
+    document.getElementById("roundRobinBtn").disabled = true;
+    const question = chatExchanges[chatExchanges.length - 1]?.user || "";
+    const roundRobinAnswers = await queryRoundRobin(question, lastRound1Answers);
+    chatExchanges[chatExchanges.length - 1].roundRobin = roundRobinAnswers;
+    renderHistory();
+    setSpinner(false);
+    document.getElementById("roundRobinBtn").disabled = false;
+  });
+
   function setSpinner(on) {
-    document.getElementById("typingSpinner").style.display = on ? "" : "none";
+    const submitSpinner = document.getElementById("submitSpinner");
+    const roundRobinSpinner = document.getElementById("roundRobinSpinner");
+
+    const submitBtn = document.getElementById("submitBtn");
+    const roundRobinBtn = document.getElementById("roundRobinBtn");
+
+    if (on) {
+      if (submitSpinner) submitSpinner.classList.remove("hidden");
+      if (roundRobinSpinner) roundRobinSpinner.classList.remove("hidden");
+      if (submitBtn) submitBtn.disabled = true;
+      if (roundRobinBtn) roundRobinBtn.disabled = true;
+    } else {
+      if (submitSpinner) submitSpinner.classList.add("hidden");
+      if (roundRobinSpinner) roundRobinSpinner.classList.add("hidden");
+      if (submitBtn) submitBtn.disabled = false;
+      if (roundRobinBtn) roundRobinBtn.disabled = false;
+    }
   }
 
-  // Initial blank display
-  function renderHistory() {
-    const container = document.getElementById("chatHistory");
-    container.innerHTML = "";
-    chatExchanges.forEach(ex => {
-      // User turn
-      const userDiv = document.createElement("div");
-      userDiv.className = "my-2 flex justify-center";
-      userDiv.innerHTML = `<div class="text-md font-semibold text-gray-800 bg-blue-50 border border-blue-100 rounded px-5 py-3 max-w-[700px]">${ex.user}</div>`;
-      container.appendChild(userDiv);
-      // Advisor turns
-      const row = document.createElement("div");
-      row.className = "advisor-grid flex flex-row gap-4 justify-center";
-      ["Philosopher","MBA","Cassandra"].forEach(advisor=>{
-        let bg = advisor === "Philosopher" ? "bg-gray-50" : (advisor === "MBA" ? "bg-green-50" : "bg-pink-50");
-        let txt = advisor === "Philosopher" ? "text-gray-800" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
-        const val = ex[advisor] || "<span class='italic text-gray-400'>[no response]</span>";
-        const bubble = document.createElement("div");
-        bubble.className = `bubble relative shadow-sm ${bg} ${txt} rounded-lg p-5 text-base w-[350px] min-h-[115px] border border-gray-200`;
-        bubble.innerHTML = `
-          <span class="advisor-label">${advisor}</span>
-          <button class="copy-btn" data-copy="${val.replace(/"/g, '&quot;')}" title="Copy answer">⧉</button>
-          <div style="margin-top:2.7em; white-space:pre-line;">${val}</div>
-        `;
-        row.appendChild(bubble);
-      });
-      container.appendChild(row);
-    });
-    setupCopyBtns();
-  }
-
-  // Enter key submit
-  document.getElementById("chatInput").addEventListener("keydown", e=>{
+  document.getElementById("chatInput").addEventListener("keydown", e => {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       document.getElementById("chatForm").requestSubmit();
@@ -365,11 +419,10 @@
 
   renderHistory();
 
-  /* Help Modal Logic */
+  // Help modal logic
   const helpBtn = document.getElementById('helpBtn');
   const helpModal = document.getElementById('helpModal');
   const helpModalClose = document.getElementById('helpModalClose');
-
   helpBtn.addEventListener('click', () => {
     helpModal.classList.remove('hidden');
     document.body.style.overflow = 'hidden';
