@@ -2,40 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-
- <!-- Favicon -->
-  <link rel="shortcut icon" href="ai.ico">
-  <link rel="icon" href="ai.ico">
-
   <title>Virtual Team of Rival Advisors</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <!-- TailwindCSS for styling -->
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
     body { background: #f9fafc; }
     .bubble { position:relative; }
-    .advisor-label { position: absolute; top: 8px; left: 14px; font-size: 1.08em; font-weight: 700; color: #2563eb; }
+    .advisor-label {
+      position: absolute; top: 8px; left: 14px;
+      font-size: 1.07em; font-weight: 700; color: #2563eb;
+    }
     .copy-btn {
-      position: absolute; top: 10px; right: 14px; background: none; border: none;
-      font-size: 1.2em; color: #374151; cursor: pointer; opacity: 0.65;
+      position: absolute; top: 10px; right: 14px; background: none;
+      border: none; font-size: 1.2em; color: #374151; cursor: pointer; opacity: 0.68;
     }
     .copy-btn:hover {opacity:1;}
     .toast {
-      display: none;
-      position: fixed;
-      top: 35px;
-      left: 50%;
-      transform: translateX(-50%);
-      background: #2563eb;
-      color: #fff;
-      padding: 12px 32px;
-      border-radius: 7px;
-      font-size: 1.13em;
-      z-index: 2000;
-      min-width: 170px;
-      text-align: center;
-      box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-      pointer-events:none;
+      display: none; position: fixed; top: 35px; left: 50%; transform: translateX(-50%);
+      background: #2563eb; color: #fff; padding: 12px 32px; border-radius: 7px; font-size: 1.12em;
+      z-index: 2000; min-width: 170px; text-align: center; box-shadow: 0 2px 16px rgba(0,0,0,0.12); pointer-events:none;
     }
     @media (max-width: 1024px) {
       .advisor-grid { flex-direction: column !important; }
@@ -44,7 +29,6 @@
   </style>
 </head>
 <body class="min-h-screen flex flex-col">
-  <!-- Title/Header -->
   <header class="bg-[#0f172a] text-white p-6 shadow text-2xl font-bold flex items-center gap-3">
     <img src="ai.gif" class="h-8 w-8 rounded" alt="AI" />
     Virtual Team of Rival Advisors
@@ -78,11 +62,13 @@
     <!-- Entry area for question -->
     <form id="chatForm" class="mt-4 flex flex-col sm:flex-row items-center bg-white rounded shadow px-4 py-3 gap-2" autocomplete="off">
       <div class="flex-1 flex flex-row items-center w-full">
-        <input id="chatInput" type="text" required autocomplete="off" placeholder="What is your strategic dilemma or question?" class="w-full px-3 py-2 rounded border border-gray-300 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-lg" />
+        <input id="chatInput" type="text" required autocomplete="off"
+          placeholder="What is your strategic dilemma or question?"
+          class="w-full px-3 py-2 rounded border border-gray-300 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-lg" />
         <img id="typingSpinner" src="spinner.gif" alt="Loading..." class="h-7 w-7 mx-2" style="display:none;">
-        <button id="submitBtn" type="submit" class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg" aria-label="Submit question">
-          ➣
-        </button>
+        <button id="submitBtn" type="submit"
+          class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg"
+          aria-label="Submit question">➣</button>
       </div>
     </form>
     <div id="toast" class="toast"></div>
@@ -91,9 +77,9 @@
   <script>
     // --- Together.ai config ---
     const TOGETHER_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ";
-    const TOGETHER_MODEL = "deepseek-ai/DeepSeek-R1";
+    // Use a serverless model to avoid endpoint errors -- you can browse available models at https://www.together.ai/models
+    const TOGETHER_MODEL = "deepseek-ai/DeepSeek-V3.1";
 
-    // Persona/config
     function getPrompts() {
       return {
         Philosopher: document.getElementById("philosopherPrompt").value.trim(),
@@ -103,7 +89,7 @@
     }
 
     // Message history
-    let chatExchanges = [];  // [{user, Philosopher, MBA, Cassandra}, ...]
+    let chatExchanges = []; // [{user, Philosopher, MBA, Cassandra}, ...]
 
     // Display toast
     function showToast(msg) {
@@ -122,7 +108,7 @@
           await navigator.clipboard.writeText(val || "");
           showToast("Copied!");
         };
-      })
+      });
     }
 
     // Render all exchanges
@@ -139,12 +125,11 @@
         // Advisor turns
         const row = document.createElement("div");
         row.className = "advisor-grid flex flex-row gap-4 justify-center";
-        ["Philosopher", "MBA", "Cassandra"].forEach(advisor => {
-          // Random subtle color for bubble
+        ["Philosopher","MBA","Cassandra"].forEach(advisor=>{
+          // Bubble color
           let bg = advisor === "Philosopher" ? "bg-gray-50" : (advisor === "MBA" ? "bg-green-50" : "bg-pink-50");
           let txt = advisor === "Philosopher" ? "text-gray-800" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
           const val = ex[advisor] || "<span class='italic text-gray-400'>[no response]</span>";
-          // Compose HTML
           const bubble = document.createElement("div");
           bubble.className = `bubble relative shadow-sm ${bg} ${txt} rounded-lg p-5 text-base w-[350px] min-h-[115px] border border-gray-200`;
           bubble.innerHTML = `
@@ -159,12 +144,11 @@
       setupCopyBtns();
     }
 
-    // Spinner helpers
     function setSpinner(on) {
       document.getElementById("typingSpinner").style.display = on ? "" : "none";
     }
 
-    // Together API call, per advisor
+    // Together API call, one advisor
     async function askTogether(expertPrompt, question) {
       const systemMsg = expertPrompt;
       const chat = [
@@ -186,21 +170,67 @@
           })
         });
         let data;
-        try {
-          data = await res.json();
-        } catch (e) {
-          return "[Invalid LLM response]";
-        }
-        if (!res.ok) {
-          if (data && data.error && data.error.message)
+        try { data = await res.json(); } catch(e) { return "[Invalid LLM response]"; }
+        if(!res.ok){
+          if(data && data.error && data.error.message)
             return "[Error] " + data.error.message;
           return `[LLM Error ${res.status}]`;
         }
         let txt = data.choices?.[0]?.message?.content?.trim();
         return txt || "[no answer]";
       } catch (err) {
-        return "[Network error: " + err.message + "]";
+        return "[Network error: "+err.message+"]";
       }
+    }
+
+    // Sequential/staggered requests with delay
+    async function queryAllAdvisors(question) {
+      const prompts = getPrompts();
+      const advisors = ["Philosopher", "MBA", "Cassandra"];
+      const answers = {};
+      for (let i=0; i<advisors.length; ++i) {
+        const adv = advisors[i];
+        answers[adv] = await askTogether(prompts[adv], question);
+        renderPartialHistory(question, answers); // Show responses as they arrive
+        await delay(1800); // ~2sec between calls: tune if needed (minimize rate-limit risk)
+      }
+      return answers;
+    }
+    function delay(ms) { return new Promise(res=>setTimeout(res,ms)); }
+
+    // Partial render so answers appear as soon as ready
+    function renderPartialHistory(question, answers){
+      // Don't re-draw full chat history for every partial answer; just the current block:
+      const container = document.getElementById("chatHistory");
+      let lastRow = container.lastChild;
+      if (lastRow && lastRow.classList?.contains('advisor-grid')) {
+        // Remove if already present
+        container.removeChild(lastRow);
+        container.removeChild(container.lastChild); // also user bubble
+      }
+      // User bubble
+      const userDiv = document.createElement("div");
+      userDiv.className = "my-2 flex justify-center";
+      userDiv.innerHTML = `<div class="text-md font-semibold text-gray-800 bg-blue-50 border border-blue-100 rounded px-5 py-3 max-w-[700px]">${question}</div>`;
+      container.appendChild(userDiv);
+      // Advisor row
+      const row = document.createElement("div");
+      row.className = "advisor-grid flex flex-row gap-4 justify-center";
+      ["Philosopher","MBA","Cassandra"].forEach(advisor=>{
+        let bg = advisor === "Philosopher" ? "bg-gray-50" : (advisor === "MBA" ? "bg-green-50" : "bg-pink-50");
+        let txt = advisor === "Philosopher" ? "text-gray-800" : (advisor === "MBA" ? "text-green-900" : "text-pink-900");
+        const val = answers[advisor] || "<span class='italic text-gray-400'>[waiting]</span>";
+        const bubble = document.createElement("div");
+        bubble.className = `bubble relative shadow-sm ${bg} ${txt} rounded-lg p-5 text-base w-[350px] min-h-[115px] border border-gray-200`;
+        bubble.innerHTML = `
+          <span class="advisor-label">${advisor}</span>
+          <button class="copy-btn" data-copy="${val.replace(/"/g, '&quot;')}" title="Copy answer">⧉</button>
+          <div style="margin-top:2.7em; white-space:pre-line;">${val}</div>
+        `;
+        row.appendChild(bubble);
+      });
+      container.appendChild(row);
+      setupCopyBtns();
     }
 
     // Submit handler
@@ -210,15 +240,9 @@
       if (!question) return;
       setSpinner(true);
       document.getElementById("chatInput").disabled = true;
-      let prompts = getPrompts();
-
-      // run all 3 in parallel
-      const [resp1, resp2, resp3] = await Promise.all([
-        askTogether(prompts.Philosopher, question),
-        askTogether(prompts.MBA, question),
-        askTogether(prompts.Cassandra, question)
-      ]);
-      chatExchanges.push({ user: question, Philosopher: resp1, MBA: resp2, Cassandra: resp3 });
+      // Responses sequentially
+      const answers = await queryAllAdvisors(question);
+      chatExchanges.push({ user: question, Philosopher: answers.Philosopher, MBA: answers.MBA, Cassandra: answers.Cassandra });
       renderHistory();
       setSpinner(false);
       document.getElementById("chatInput").value = "";
@@ -226,16 +250,16 @@
       document.getElementById("chatInput").focus();
     };
 
-    // Initial blank display
-    renderHistory();
-
-    // Enter key submits
+    // Enter also submits
     document.getElementById("chatInput").addEventListener("keydown", e=>{
       if (e.key === "Enter" && !e.shiftKey) {
         e.preventDefault();
         document.getElementById("chatForm").requestSubmit();
       }
     });
+
+    // Initial blank display
+    renderHistory();
   </script>
 </body>
 </html>
