@@ -97,7 +97,7 @@
   const TOGETHER_API_KEY = "tgp_v1_xmNEMdb6ZIZ41g9mzpHiFSm2mw1sUNYXOc-PrjNhaNQ";
 
 
-const MODEL = "meta-llama/Llama-3-8b-chat-hf"; // Test this instead
+const MODEL = "deepseek-ai/DeepSeek-V3.1"; // Test this instead
 
 
   // 🛠️ EDITABLE PROMPTS
@@ -171,7 +171,7 @@ const MODEL = "meta-llama/Llama-3-8b-chat-hf"; // Test this instead
     }
 
     try {
-      const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+      const response = await fetch('https://api.together.ai/v1/chat/completions', {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${TOGETHER_API_KEY}`,
@@ -216,7 +216,7 @@ const MODEL = "meta-llama/Llama-3-8b-chat-hf"; // Test this instead
 
     try {
       const msgs = [{ role: 'system', content: fullPrompt }];
-      const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+      const response = await fetch('https://api.together.ai/v1/chat/completions', {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${TOGETHER_API_KEY}`,
