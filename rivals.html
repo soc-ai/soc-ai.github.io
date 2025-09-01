@@ -76,7 +76,7 @@
 <header class="bg-[#0f172a] text-white p-6 shadow text-2xl font-bold flex items-center gap-3 justify-between">
   <div class="flex items-center gap-3">
     <img src="ai.gif" class="h-8 w-8 rounded" alt="AI" />
-    <span>Virtual Team of Rival Advisors</span>
+    <span>Virtual Team of Rival Advisors  —   Get Perspectives from Experts</span>
   </div>
   <button id="helpBtn" aria-label="Help"
     class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold text-base">
@@ -106,21 +106,26 @@
   </section>
 
   <!-- Chat display -->
-  <section id="chatHistory" class="flex flex-col gap-8">
-    <!-- Messages and answers appended here -->
-  </section>
+  <section id="chatHistory" class="flex flex-col gap-8"></section>
 
   <!-- Entry and buttons -->
   <form id="chatForm" class="mt-4 flex flex-col sm:flex-row items-center bg-white rounded shadow px-4 py-3 gap-2" autocomplete="off">
     <div class="flex-1 flex flex-row items-center w-full">
       <input id="chatInput" type="text" required autocomplete="off" placeholder="What is your strategic dilemma or question?" class="w-full px-3 py-2 rounded border border-gray-300 mr-2 focus:outline-none focus:ring-2 focus:ring-blue-600 text-lg" />
-      <button id="submitBtn" type="submit" class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg" aria-label="Send question">
+      <button id="submitBtn" type="submit"
+        class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg"
+        aria-label="Send question"
+        title="Send your question to three expert advisors with different perspectives on the issue">
         ➣
-        <img id="submitSpinner" src="spinner.gif" alt="Loading" class="hidden w-6 h-6" />
+        <img id="submitSpinner" src="spinner.gif" alt="Loading" class="hidden w-8 h-8"/>
       </button>
-      <button id="roundRobinBtn" type="button" class="bg-green-700 hover:bg-green-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg ml-2" aria-label="Round Robin" disabled>
+      <button id="roundRobinBtn" type="button"
+        class="bg-green-700 hover:bg-green-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg ml-2"
+        aria-label="Round Robin"
+        title="Have each expert respond to the others' advice in a second round of analysis"
+        disabled>
         Round Robin
-        <img id="roundRobinSpinner" src="spinner.gif" alt="Loading" class="hidden w-8 h-8" />
+        <img id="roundRobinSpinner" src="spinner.gif" alt="Loading" class="hidden w-8 h-8"/>
       </button>
     </div>
   </form>
@@ -134,7 +139,6 @@
     <button id="helpModalClose" aria-label="Close help popup">&times;</button>
     <h2 id="helpModalTitle" class="text-2xl font-bold mb-4">About Virtual Team of Rival Advisors</h2>
     <p>This app uses three AI experts with distinct personalities (Philosopher, MBA, Cassandra) to answer your strategic questions. Enter a question and see the varied advice each expert provides.</p>
-<p>Use the Round Robin button to ask the experts to respond to EACH OTHER'S responses for a Team of Rivals experience.</p>
     <p>You can edit each expert's persona prompt before asking a question to tailor their style and approach.</p>
     <p>Answers can be copied to clipboard using the ⧉ button in each expert's response bubble. The copied text will include an expert label.</p>
     <p>The app queries Together.ai’s powerful AI models sequentially to avoid rate limits during experimental usage.</p>
@@ -357,20 +361,18 @@
 
   document.getElementById("chatForm").onsubmit = async function (e) {
     e.preventDefault();
-    const question = document.getElementById("chatInput").value.trim();
-    if (!question) return;
-    setSpinner(true);
+    showSubmitSpinner(true);
     document.getElementById("chatInput").disabled = true;
     document.getElementById("roundRobinBtn").disabled = false;
-    lastRound1Answers = await queryAllAdvisors(question);
+    lastRound1Answers = await queryAllAdvisors(document.getElementById("chatInput").value.trim());
     chatExchanges.push({
-      user: question,
+      user: document.getElementById("chatInput").value.trim(),
       Philosopher: lastRound1Answers.Philosopher,
       MBA: lastRound1Answers.MBA,
       Cassandra: lastRound1Answers.Cassandra
     });
     renderHistory();
-    setSpinner(false);
+    showSubmitSpinner(false);
     document.getElementById("chatInput").value = "";
     document.getElementById("chatInput").disabled = false;
   };
@@ -380,33 +382,34 @@
       alert("Please submit a question first to generate initial expert answers.");
       return;
     }
-    setSpinner(true);
-    document.getElementById("roundRobinBtn").disabled = true;
+    showRoundRobinSpinner(true);
     const question = chatExchanges[chatExchanges.length - 1]?.user || "";
     const roundRobinAnswers = await queryRoundRobin(question, lastRound1Answers);
     chatExchanges[chatExchanges.length - 1].roundRobin = roundRobinAnswers;
     renderHistory();
-    setSpinner(false);
-    document.getElementById("roundRobinBtn").disabled = false;
+    showRoundRobinSpinner(false);
   });
 
-  function setSpinner(on) {
+  function showSubmitSpinner(on) {
     const submitSpinner = document.getElementById("submitSpinner");
-    const roundRobinSpinner = document.getElementById("roundRobinSpinner");
-
     const submitBtn = document.getElementById("submitBtn");
-    const roundRobinBtn = document.getElementById("roundRobinBtn");
-
     if (on) {
-      if (submitSpinner) submitSpinner.classList.remove("hidden");
-      if (roundRobinSpinner) roundRobinSpinner.classList.remove("hidden");
-      if (submitBtn) submitBtn.disabled = true;
-      if (roundRobinBtn) roundRobinBtn.disabled = true;
+      submitSpinner.classList.remove("hidden");
+      submitBtn.disabled = true;
     } else {
-      if (submitSpinner) submitSpinner.classList.add("hidden");
-      if (roundRobinSpinner) roundRobinSpinner.classList.add("hidden");
-      if (submitBtn) submitBtn.disabled = false;
-      if (roundRobinBtn) roundRobinBtn.disabled = false;
+      submitSpinner.classList.add("hidden");
+      submitBtn.disabled = false;
+    }
+  }
+  function showRoundRobinSpinner(on) {
+    const roundRobinSpinner = document.getElementById("roundRobinSpinner");
+    const roundRobinBtn = document.getElementById("roundRobinBtn");
+    if (on) {
+      roundRobinSpinner.classList.remove("hidden");
+      roundRobinBtn.disabled = true;
+    } else {
+      roundRobinSpinner.classList.add("hidden");
+      roundRobinBtn.disabled = false;
     }
   }
 
