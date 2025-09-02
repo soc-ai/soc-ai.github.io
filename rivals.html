@@ -3,11 +3,6 @@
 <head>
   <meta charset="UTF-8" />
   <title>Virtual Team of Rival Advisors</title>
-
-<!-- Favicon -->
-  <link rel="shortcut icon" href="ai.ico">
-  <link rel="icon" href="ai.ico">
-
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
@@ -34,7 +29,6 @@
       .advisor-grid { flex-direction: column !important; }
       .bubble { width: 95% !important; margin: 0.5rem auto !important; }
     }
-
     /* Modal styles */
     #helpModal.hidden { display: none; }
     #helpModal {
@@ -81,7 +75,7 @@
 <header class="bg-[#0f172a] text-white p-6 shadow text-2xl font-bold flex items-center gap-3 justify-between">
   <div class="flex items-center gap-3">
     <img src="ai.gif" class="h-8 w-8 rounded" alt="AI" />
-    <span>Virtual Team of Rival Advisors  —   Get Perspectives from Experts</span>
+    <span>Virtual Team of Rival Advisors — Get Perspectives from Experts</span>
   </div>
   <button id="helpBtn" aria-label="Help"
     class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded font-semibold text-base">
@@ -120,14 +114,14 @@
       <button id="submitBtn" type="submit"
         class="bg-blue-700 hover:bg-blue-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg"
         aria-label="Send question"
-        title="Send your question to three expert advisors with different perspectives on the issue">
+        title="Send your question to three expert advisors">
         ➣
         <img id="submitSpinner" src="spinner.gif" alt="Loading" class="hidden w-8 h-8"/>
       </button>
       <button id="roundRobinBtn" type="button"
         class="bg-green-700 hover:bg-green-900 text-white px-4 py-2 rounded font-semibold transition flex items-center gap-1 text-lg ml-2"
         aria-label="Round Robin"
-        title="Have each expert respond to the others' advice in a second round of analysis"
+        title="Have each expert respond to the others' advice in a second round"
         disabled>
         Round Robin
         <img id="roundRobinSpinner" src="spinner.gif" alt="Loading" class="hidden w-8 h-8"/>
@@ -144,8 +138,8 @@
     <button id="helpModalClose" aria-label="Close help popup">&times;</button>
     <h2 id="helpModalTitle" class="text-2xl font-bold mb-4">About Virtual Team of Rival Advisors</h2>
     <p>This app uses three AI experts with distinct personalities (Philosopher, MBA, Cassandra) to answer your strategic questions. Enter a question and see the varied advice each expert provides.</p>
-    <p>You can edit each expert's persona prompt before asking a question to tailor their style and approach.</p>
 <p>After receiving initial answers, you can press the Round Robin button to generate a further round of answers where the experts respond to EACH OTHERS' analysis.</p>
+    <p>You can edit each expert's persona prompt before asking a question to tailor their style and approach.</p>
     <p>Answers can be copied to clipboard using the ⧉ button in each expert's response bubble. The copied text will include the expert's name.</p>
     <p>The app queries our powerful AI models sequentially to generate best results.</p>
     <p>If you experience any issues, please wait a moment between questions or retry individual responses.</p>
@@ -289,19 +283,29 @@
     return answers;
   }
 
+  // ENHANCED ROUND ROBIN PROMPT LOGIC
+  function buildEnhancedPrompt(expertName, expertPrompt, question, firstRound) {
+    const allExperts = ["Philosopher", "MBA", "Cassandra"];
+    const otherExperts = allExperts.filter(a => a !== expertName);
+
+    let out = `${expertPrompt}\n\n`;
+    out += `Original question: ${question}\n\n`;
+    out += `Here are the other experts' responses from the first round:\n`;
+    otherExperts.forEach(other => {
+      out += `- ${other}: "${firstRound[other]}"\n`;
+    });
+    out += `
+Please respond directly to ${otherExperts.join(" and ")}, referring to them by name. (You may agree or disagree with their points but explain why and address their reasoning.) Critically evaluate their arguments and defend your perspective. Engage in a constructive debate using their answers, challenging assumptions and contrasting your view. Structure your reply as if you were in a live panel with them.
+`;
+    return out;
+  }
+
   async function queryRoundRobin(question, round1Answers) {
     const prompts = getPrompts();
     const advisors = ["Philosopher", "MBA", "Cassandra"];
     const rrAnswers = {};
     for (let adv of advisors) {
-      const others = advisors.filter(a => a !== adv);
-      let promptText = prompts[adv] + "\n\n";
-      promptText += `Original question: ${question}\n\n`;
-      promptText += `Other experts' answers from first round:\n`;
-      for (let other of others) {
-        promptText += `${other} said:\n${round1Answers[other]}\n\n`;
-      }
-      promptText += `Please analyze and give your thoughtful follow-up opinion.`;
+      const promptText = buildEnhancedPrompt(adv, prompts[adv], question, round1Answers);
       rrAnswers[adv] = await askTogether(promptText, question);
       renderRoundRobinPartialHistory(question, lastRound1Answers, rrAnswers);
       await delay(1800);
