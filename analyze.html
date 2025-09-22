@@ -350,21 +350,21 @@
 
     // === CONFIGURABLE SYSTEM PROMPT ===
     const DEFAULT_SYSTEM_PROMPT =  `💬 Prompt to the Analyzer (you can modify this):\n
-You are an expert business analyst, project manager, or sales professional specializing in the marketing, design, manufacturing, and deployment of steel buildings for commercial and public purposes.\n
-Purpose: To analyze the company "Olympia Steel Buildings" and compare its capabilities with current or potential customers (for customer fit and solution suggestions) and with competitors (to identify competitive advantages).\n
+You are an expert business analyst specializing in laboratory sciences and industrial services.\n
+Purpose: To analyze the company "ALS Global" and compare its capabilities with current or potential customers (for customer fit and solution suggestions) and with competitors (to identify competitive advantages).\n
 Instructions for responding:\n
-- Analyze provided information about Olympia Steel Buildings, the customer/prospect, or competitor.\n
+- Analyze provided information about ALS Global, the customer/prospect, or competitor.\n
 - Show sources for any external facts where possible, or explain reasoning if none.\n
 - Structure all answers in clearly formatted bulleted lists, numbered lists, and outlines. Avoid paragraphs – use concise, scan-friendly points.\n
 - Present action items at end of response if applicable.\n\n
 (You may edit this prompt as needed.)`;
 
-    const CUSTOMER_ANALYSIS_PROMPT = `Analyze the following customer for potential matches with Olympia Steel Buildings's design and manufacturing services. Summarize the customer's business, likely service needs, and recommend sales approaches or service angles for Olympia Steel Buildings. Be sure to list specific business units and to include contact names and phone numbers and email addresses for appropriate people to contact at each business unit. Indicate if specific contact individuals are notavailable. Show sources where possible. Reply in bulleted/outlined form. Company info:\n\n`;
-    const COMPETITOR_ANALYSIS_PROMPT = `Analyze the following competitor to Olympia Steel Buildings. Summarize the competitor's business, service offerings, and highlight areas of overlap or difference with Olympia Steel Buildings. Suggest sales talking points for Olympia Steel Buildings. Be sure to list specific business units and to include contact names and phone numbers and email addresses for appropriate people to contact at each business unit. Indicate if specific contact individuals are notavailable. Show sources where possible. Reply in bulleted/outlined form. Company info:\n\n`;
+    const CUSTOMER_ANALYSIS_PROMPT = `Analyze the following customer for potential matches with ALS Global's laboratory and testing services. Summarize the customer's business, likely service needs, and recommend sales approaches or service angles for ALS Global. Be sure to list specific business units and to include contact names and phone numbers and email addresses for appropriate people to contact at each business unit. Indicate if specific contact individuals are notavailable. Show sources where possible. Reply in bulleted/outlined form. Company info:\n\n`;
+    const COMPETITOR_ANALYSIS_PROMPT = `Analyze the following competitor to ALS Global. Summarize the competitor's business, service offerings, and highlight areas of overlap or difference with ALS Global. Suggest sales talking points for ALS Global. Be sure to list specific business units and to include contact names and phone numbers and email addresses for appropriate people to contact at each business unit. Indicate if specific contact individuals are notavailable. Show sources where possible. Reply in bulleted/outlined form. Company info:\n\n`;
 
 // ======= STRATEGIC ADVICE PROMPT TEMPLATE (editable) =======
 const STRATEGIC_ADVICE_PROMPT = `
-You are a strategic business consultant for Olympia Steel Buildings (or the customer/competitor).
+You are a strategic business consultant for ALS Global (or the customer/competitor).
 - Provide actionable, high-level strategic advice using all available information: Company name, location, analysis type (Customer Compare or Competitor Compare), and any stated business goal or challenge.
 - Organize your response in clear, bulleted or numbered lists/outlines.
 - If a specific business goal or challenge is given, address it directly; otherwise, assess overall strategy based on context.
@@ -380,7 +380,7 @@ You are a business analyst performing a detailed SWOT (Strengths, Weaknesses, Op
 - Use all available information such as company/entity name, location, analysis type (customer or competitor), and any additional context.
 - Provide a clear, structured SWOT report with sections for each category.
 - Use concise, bulleted lists with actionable insights.
-- Tailor the analysis to help Olympia Steel Buildings's management or sales teams strategize effectively.
+- Tailor the analysis to help ALS Global's management or sales teams strategize effectively.
 
 [Details and request below:]
 `;
@@ -394,14 +394,14 @@ You are a professional sales communications expert specializing in laboratory sc
 - Generate or refine a clear, persuasive, and professional sales proposal or email draft tailored to the customer's needs.
 - Organize the content with an engaging introduction, key value propositions, relevant services, and a clear call to action.
 - Respond in a well-structured format suitable for sending directly to the customer or client.
-- Avoid overly technical jargon unless relevant, and highlight Olympia Steel Buildings’s unique advantages.
+- Avoid overly technical jargon unless relevant, and highlight ALS Global’s unique advantages.
 
 [Details and request below:]
 `;
 
 // ======= CUSTOMER OBJECTION HANDLER PROMPT TEMPLATE =======
 const CUSTOMER_OBJECTION_PROMPT = `
-You are a skilled sales professional specialized in steel commercial buildings.
+You are a skilled sales professional specialized in laboratory sciences and industrial services.
 
 - Provide a structured, convincing reply addressing the objection/concern.
 - Include effective sales talking points and handling strategies.
@@ -413,25 +413,25 @@ You are a skilled sales professional specialized in steel commercial buildings.
 
 const OBJECTION_RESPONSES = {
   "Price Too High": `Acknowledge customer's concern about price and emphasize value:
-- Highlight Olympia Steel Buildings's superior accuracy and compliance certifications.
+- Highlight ALS Global's superior accuracy and compliance certifications.
 - Emphasize reliability and timeliness reducing risk and cost overruns.
 - Offer to explore flexible pricing or bundled services options.
 - Reinforce long-term ROI and quality assurance benefits.`,
 
-  "Prefer Existing Vendor": `Respect their loyalty, then differentiate Olympia Steel Buildings:
-- Point out Olympia Steel Buildings's cutting-edge technology and global reach.
+  "Prefer Existing Vendor": `Respect their loyalty, then differentiate ALS Global:
+- Point out ALS Global's cutting-edge technology and global reach.
 - Share success stories that show better outcomes or faster delivery.
 - Offer pilot trials or proof of concept to demonstrate superior service.
 - Emphasize commitment to partnership and responsiveness.`,
 
-  "Not Convinced of Value": `Clarify and quantify Olympia Steel Buildings's value proposition:
+  "Not Convinced of Value": `Clarify and quantify ALS Global's value proposition:
 - Explain unique service offerings unavailable elsewhere.
 - Present case studies or data showing cost savings or compliance gains.
 - Address specific business pain points mentioned by the customer.
 - Highlight expert team capabilities and tailored solutions.`,
 
   "Unsure About Technical Capability": `Build confidence through expertise and credentials:
-- Provide detailed information on Olympia Steel Buildings's technical expertise.
+- Provide detailed information on ALS Global's technical expertise.
 - Share certifications, accreditations, and client testimonials.
 - Offer to connect customer with subject matter experts.
 - Explain quality management and continuous improvement processes.`,
@@ -698,17 +698,17 @@ if (tool === 'examples') {
       };
     });
 
-    // Handle the "Search the Olympia Steel Buildings Website" button
+    // Handle the "Search the ALS Global Website" button
     document.getElementById('searchWebsiteBtn').onclick = function() {
       closeModal();
-      // Open the Olympia Steel Buildings website in a styled popup window
+      // Open the ALS Global website in a styled popup window
       const width = 900;
       const height = 700;
       const left = (window.screen.width / 2) - (width / 2);
       const top = (window.screen.height / 2) - (height / 2);
       const features = `width=${width},height=${height},left=${left},top=${top},` +
                        `resizable=yes,scrollbars=yes,menubar=no,toolbar=no,location=no,status=no`;
-      window.open('https://www.olympiabuildings.com/', 'Olympia Steel BuildingsSite', features);
+      window.open('https://alsglobal.com', 'ALSGlobalSite', features);
     };
   }, 120);
 }
@@ -755,7 +755,7 @@ case 'strategic':
   case 'swot':
   html = `<h2>SWOT Analysis</h2>
     <div style="margin-bottom:0.6rem;">
-      <label>Entity (Olympia Steel Buildings / Customer / Competitor):</label><br>
+      <label>Entity (ALS Global / Customer / Competitor):</label><br>
       <input id="swotEntityInput" style="width:95%;" placeholder="Company or division...">
     </div>
     <div style="margin:1rem 0 0.5rem 0">
@@ -848,10 +848,10 @@ case 'examples':
   html = `<h2>Example Prompt Library</h2>
     <div style="margin-bottom:1rem;">One-click to insert popular prompt ideas:</div>
     <ul style="padding-left:1.5em; list-style-type: disc;">
-      <li><button class="example-btn" data-prompt="Identify growth opportunities for Olympia Steel Buildings in 2025" style="margin-bottom:4px; cursor:pointer;">Growth Opportunities for Olympia Steel Buildings in 2025</button></li>
-      <li><button class="example-btn" data-prompt="Compare service offerings of Olympia Steel Buildings and Bureau Veritas" style="margin-bottom:4px; cursor:pointer;">Compare Service Offerings with Bureau Veritas</button></li>
-      <li><button class="example-btn" data-prompt="How can Olympia Steel Buildings improve project delivery?" style="margin-bottom:4px; cursor:pointer;">How can Olympia Steel Buildings improve project delivery?</button></li>
-      <li><button id="searchWebsiteBtn" style="margin-top:0.4rem; cursor:pointer;">Search the Olympia Steel Buildings Website</button></li>
+      <li><button class="example-btn" data-prompt="Identify growth opportunities for ALS Global in 2025" style="margin-bottom:4px; cursor:pointer;">Growth Opportunities for ALS Global in 2025</button></li>
+      <li><button class="example-btn" data-prompt="Compare service offerings of ALS Global and Bureau Veritas" style="margin-bottom:4px; cursor:pointer;">Compare Service Offerings with Bureau Veritas</button></li>
+      <li><button class="example-btn" data-prompt="How can ALS Global improve project delivery?" style="margin-bottom:4px; cursor:pointer;">How can ALS Global improve project delivery?</button></li>
+      <li><button id="searchWebsiteBtn" style="margin-top:0.4rem; cursor:pointer;">Search the ALS Global Website</button></li>
     </ul>
     <div style="margin-top:1.2rem;color:#666;">Use these prompt examples as a starting point; you can inject them into chat with one click or edit before sending.</div>`;
   break;
