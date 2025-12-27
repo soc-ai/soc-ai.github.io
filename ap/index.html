@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<script
+  src='https://cdn.jotfor.ms/agent/embedjs/0194f1651c077dae8c7322ee44960cbbc46b/embed.js?skipWelcome=1&maximizable=1'>
+</script>
+
+
+<head>
+
+
+
+  <meta charset="UTF-8">
+  <title>Social AI Chat</title>
+
+  <!-- Favicon -->
+  <link rel="shortcut icon" href="ai.ico">
+  <link rel="icon" href="ai.ico">
+  <!-- Mobile Browser Address Bar Color -->
+  <meta name="theme-color" content="#191970">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+
+.sidebar-btn {
+  display: block;
+  width: 100%;
+  padding: 0.7em 0;
+  background: #273043;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  font-weight: 500;
+  margin: 1em 0 0.5em 0;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 6px rgba(39,48,67,0.06);
+}
+.sidebar-btn:hover, .sidebar-btn:focus {
+  background: #1d2533;
+  outline: none;
+}
+
+
+
+#openPopupBtn {
+  display: block;
+  width: 100%;
+  padding: 0.7em 0;
+  background: #273043;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-size: 1em;
+  font-weight: 500;
+  margin: 1em 0 0.5em 0;
+  cursor: pointer;
+  transition: background 0.18s, box-shadow 0.18s;
+  box-shadow: 0 2px 6px rgba(39,48,67,0.06);
+}
+#openPopupBtn:hover, #openPopupBtn:focus {
+  background: #1d2533;
+  outline: none;
+}
+
+
+    body {
+      margin: 0; font-family: sans-serif; background: #f8f9fa; color: #222;
+      display: flex; flex-direction: column; min-height: 100vh;
+    }
+    header, footer {
+      background: #273043; color: #fff; padding: 1em 2em;
+      text-align: left;
+    }
+    .container {
+      flex: 1; display: flex; min-height: 100vh;
+    }
+    .sidebar {
+      background: #fff;
+      border-right: 1px solid #eee;
+      width: 220px;
+      transition: width 0.3s;
+      overflow: hidden;
+      display: flex; flex-direction: column;
+    }
+    .sidebar.collapsed {
+      width: 40px;
+    }
+    .sidebar-toggle {
+      background: #273043; color: #fff; border: none;
+      width: 30px; height: 30px; cursor: pointer;
+      font-size: 1em;
+      align-self: flex-end;
+      margin: 0.5em 0.5em 0 0;
+      border-radius: 50%;
+      transition: background 0.2s;
+    }
+    .sidebar.collapsed .sidebar-content {
+      display: none;
+    }
+    .sidebar-content {
+      padding: 1em;
+    }
+    .sidebar h3 {
+      margin-top: 0;
+      font-size: 1.1em;
+      color: #273043;
+    }
+    .sidebar ul {
+     list-style: none; padding: 5px; margin: 0;
+    }
+    .sidebar ul li {
+      margin-bottom: 0.7em;
+    }
+    .sidebar ul li a {
+      color: #273043; text-decoration: none;
+      word-break: break-all;
+      font-size: 0.97em;
+    }
+    .main-content {
+      flex: 1; display: flex; justify-content: center; align-items: stretch;
+      background: #f4f6f8;
+      min-width: 0;
+    }
+    .chat-iframe {
+      border: 10;
+      width: 100%; max-width: 1000px; min-width: 320px;
+      height: 90vh; min-height: 500px; background: #fff;
+      box-shadow: 0 3px 8px rgba(0,0,0,0.04);
+      border-radius: 8px;
+      margin: 2em auto;
+      display: block;
+    }
+    /* ---- Popup Styles ---- */
+    .popup-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 2000;
+    }
+   .popup-content {
+  background: #fff;
+  margin: 10% auto;
+  padding: 2em 2.5em;
+  border-radius: 10px;
+  width: 90%;
+  max-width: 300px;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.18);
+  position: absolute;
+  text-align: left;
+  animation: popupIn 0.2s;
+  /* Add these lines: */
+  max-height: 70vh;           /* Don't exceed 80% of viewport height */
+  overflow-y: auto;           /* Scroll inside popup if content is too tall */
+}
+
+    @keyframes popupIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+    .close-btn {
+      position: absolute;
+      top: 12px; right: 18px;
+      font-size: 1.4em;
+      color: #888;
+      cursor: pointer;
+      transition: color 0.2s;
+    }
+    .close-btn:hover { color: #e74c3c; }
+    /* ---- Responsive ---- */
+    @media (max-width: 800px) {
+      .container { flex-direction: column; }
+      .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #eee; }
+      .sidebar.collapsed { width: 40px; }
+      .main-content { justify-content: stretch; }
+    }
+  </style>
+</head>
+<body>
+  <header>
+
+<div> 
+    <img src="logo3.png"   alt="Description of image" style="vertical-align: middle;  height: 40px;"> 
+    <span>&nbsp;&nbsp;&nbsp;&nbsp;Welcome to the Auto-Parts AI Portal &nbsp&nbsp&nbsp—&nbsp&nbsp;&nbsp; Use Query Engine below or AI Task Apps from the sidebar</span> 
+</div> 
+
+
+
+  </header>
+  <div class="container">
+    <nav class="sidebar collapsed" id="sidebar">
+      <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar">☰</button>
+
+
+      <div class="sidebar-content">
+        <h3>Resources<br></h3>
+
+   <button class="sidebar-btn" id="openPopupBtn">Help ❔</button>
+<button class="sidebar-btn" id="contactBtn" style="margin-bottom: 0.7em;">Email Us</button>
+
+<ul id="sidebarLinks">
+
+
+
+
+        <ul id="sidebarLinks">
+ 
+<br><hr>
+
+  <h3>AI Task Apps</h3>—  
+          
+          <li title="Helps marketing, sales, and project manager professionals to analyze and compare customer needs with company capabilities AND to evaluate competitor capabilities. "><a href="analyze.html" target="_self">Customer/Competitor<br>&nbsp;&nbsp;&nbsp;Analyzer</a></li>
+
+      <p style="color: red;">— &nbsp;&nbsp;&nbsp&nbsp;&nbsp;&nbspNEW</p>
+         <li title="A team of rival experts to lend multiple viewpoints to analysis of any question."><a href="https://soc-ai.github.io/rivals.html
+" target="_self">Virtual Team of<br>&nbsp;&nbsp;&nbsp;Rival Advisors</a></li>
+
+— 
+         <li title="Analyze global strategies using realtime monitoring and aggregated data with regional breakdown. Provides specific insights with analysis and recommendations."><a href="https://soc-ai.github.io/strategy.html
+" target="_self">Global Strategies<br>&nbsp;&nbsp;&nbsp;Analyzer</a></li>
+
+— 
+   <li title="Analyzes account signals from the CRM and support logs, ranking customers by retention/renewal risk and suggesting targeted retention steps."><a href="https://soc-ai.github.io/renewal.html" target="_self">Customer Renewal<br>&nbsp;&nbsp;&nbsp;Predictor</a></li>
+ —  
+<li title="AI scan for prospective customers whose needs are compatible with company capabilities. and who have open RFPs. Optionally filter by region'"><a href="https://soc-ai.github.io/prospect.html" target="_self">RFP Prospector</a></li>
+—  
+<li title="Helps teams assemble better responses to tenders and proposals by reviewing requirements, recommending structure, and suggesting persuasive wording or compliance checks."><a href="https://soc-ai.github.io/coach.html" target="_self">RFP/RFI Response<br>&nbsp;&nbsp;&nbsp;Coach</a></li>
+—  
+<li title="Allows managers to experiment with different discounting, bundling, or fee structures, showing modeled margin, revenue, and win-rate impact instantly."><a href="https://soc-ai.github.io/pricing.html" target="_self">Pricing Scenario <br>&nbsp;&nbsp;&nbsp;Simulator</a></li>
+
+—  <li title="Evaluates RFPs or new opportunities against company criteria (capability, profitability, fit), gives a transparent, auditable go/no-go recommendation.">Go/No-Go Bid<br>&nbsp;&nbsp;&nbsp;Decision Assistant</a></li>
+—  
+<li title="Helps a concrete quality expert providing QA analysis for construction job sites to analyze and interpret density readings and aeration levels of concrete to assess quality, consistency, and suggest any needed remediation."><a href="https://soc-ai.github.io/concrete.html" target="_self">Construction:<br>&nbsp;&nbsp;&nbsp;Concrete QA</a></li>
+—  
+          <!-- Add more links as needed -->
+        </ul>
+     
+      </div>
+    </nav>
+
+    <main class="main-content">
+      <!-- Replace src with your chatbot app/page -->
+      <iframe class="chat-iframe" src="llm.html" title="AI Chatbot"></iframe>
+    </main>
+  </div>
+  <footer>
+    &copy; 2025 Social AI  -  All rights reserved.
+  </footer>
+  <!-- Popup HTML -->
+  <div id="myPopup" class="popup-overlay">
+    <div class="popup-content">
+      <span id="closePopupBtn" class="close-btn">&times;</span>
+      <h2>About the Portal</h2>
+      <p>
+       The Social AI Portal is your chatbot assistant. Ask anything, explore resources, or interact with the sidebar for more features including AI Task Apps.<br>
+        
+ 
+ <ul id="Links"">
+
+<li>Query our AI about any topic using <span style="color: rgb(226, 80, 65);">Ask Social AI anything</span>  </li>
+
+<li>For more current information about your topic use <span style="color: rgb(226, 80, 65);">Realtime internet query</span>  </li>
+
+<li>Run a background agent to monitor your topic using <span style="color: rgb(226, 80, 65);">Set your Agent Alert</span>  </li>
+
+<li>Upload your own documents and query them using <span style="color: rgb(226, 80, 65);">Upoad data</span>  </li>
+
+<li>Send new questions to the AI using the <span style="color: rgb(226, 80, 65);">Follow-up Questions</span> dropdown  </li>
+
+<li>Social AI can show you ads relevant to your query. Turn them on/off with the <span style="color: rgb(226, 80, 65);">Ads button </span>  (green/red)</li>
+
+<li>Social AI displays <span style="color: rgb(226, 80, 65);">Images</span> relevant to your query</li>
+
+          <!-- Add more links as needed -->
+        </ul>
+    <h2>AI Task Apps</h2>
+      <p>
+        The Portal makes available a collection of AI Task Apps designed to assist you in analyzing business scenarios. Each App focuses on a specific job or function and gives you the option to fine-tune your request. 
+Each provides detailed analysis and reports based on AI access to public information. 
+<br><br>
+Current AI Task Apps include:
+<br><br>
+
+ 
+ 
+ <ul >
+
+<li>
+Customer/Competitor
+   Analyzer<br><br>
+</li>
+
+<li>
+Virtual Team of Rival Advisors<br><br>
+</li>
+
+<li>RFP Prospector<br><br></li>
+
+<li>RFP/RFI Response
+   Coach <br><br></li>
+
+<li>Pricing Scenario
+   Simulator<br><br></li>
+
+<li>Customer Renewal
+   Predictor <br><br></li>
+
+<li>Go/No-Go Bid
+   Decision Assistant<br><br></li>
+
+<li>Construction:
+   Concrete QA <br><br></li>
+
+<li>And more to come !</li>
+
+
+          <!-- Add more links as needed -->
+        </ul>
+
+
+
+</p>
+    </div>
+  </div>
+  <script>
+    // Collapsible sidebar logic
+    const sidebar = document.getElementById('sidebar');
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    sidebarToggle.addEventListener('click', () => {
+      sidebar.classList.toggle('collapsed');
+    });
+
+    // Popup logic
+    const openBtn = document.getElementById('openPopupBtn');
+    const popup = document.getElementById('myPopup');
+    const closeBtn = document.getElementById('closePopupBtn');
+
+    openBtn.onclick = function() {
+      popup.style.display = 'block';
+    }
+    closeBtn.onclick = function() {
+      popup.style.display = 'none';
+    }
+    window.onclick = function(event) {
+      if (event.target === popup) {
+        popup.style.display = 'none';
+      }
+    }
+
+const contactBtn = document.getElementById('contactBtn');
+contactBtn.onclick = function() {
+  window.location.href = "mailto:socialai@tuta.io?subject=Request to Social AI&body=Please let us know how we can assist you.";
+}
+
+
+  </script>
+</body>
+</html>
