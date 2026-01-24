@@ -7,18 +7,13 @@
     :root {
       --bg: #0f172a;
       --bg-card: #020617;
-      --bg-card-alt: #020617;
       --border-subtle: #1e293b;
       --accent: #38bdf8;
-      --accent-soft: rgba(56, 189, 248, 0.15);
       --accent-strong: #0ea5e9;
-      --accent-danger: #f97373;
-      --accent-muted: #64748b;
       --text: #e5e7eb;
       --text-soft: #94a3b8;
       --text-strong: #f9fafb;
       --table-header-bg: #020617;
-      --table-row-alt: #020617;
       --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.85);
       --radius-lg: 18px;
       --radius-md: 10px;
@@ -26,9 +21,7 @@
       --transition-fast: 180ms ease-out;
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     body {
       margin: 0;
@@ -63,11 +56,7 @@
       background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 55%);
     }
 
-    .app-title-block {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
-    }
+    .app-title-block { display: flex; flex-direction: column; gap: 2px; }
 
     .app-title {
       font-size: 18px;
@@ -91,16 +80,9 @@
       letter-spacing: 0.09em;
     }
 
-    .app-subtitle {
-      font-size: 12px;
-      color: var(--text-soft);
-    }
+    .app-subtitle { font-size: 12px; color: var(--text-soft); }
 
-    .header-actions {
-      display: flex;
-      gap: 10px;
-      align-items: center;
-    }
+    .header-actions { display: flex; gap: 10px; align-items: center; }
 
     .badge-soft {
       font-size: 11px;
@@ -122,10 +104,7 @@
       box-shadow: 0 0 12px rgba(34, 197, 94, 0.8);
     }
 
-    .badge-soft span {
-      font-weight: 500;
-      color: var(--text);
-    }
+    .badge-soft span { font-weight: 500; color: var(--text); }
 
     .pill-small {
       font-size: 11px;
@@ -183,10 +162,7 @@
       color: var(--text-soft);
     }
 
-    .card-subtitle {
-      font-size: 11px;
-      color: var(--text-soft);
-    }
+    .card-subtitle { font-size: 11px; color: var(--text-soft); }
 
     .card-tag {
       font-size: 11px;
@@ -197,12 +173,7 @@
       color: var(--text-soft);
     }
 
-    .row {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
+    .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
     .input-group {
       display: inline-flex;
@@ -232,17 +203,10 @@
       transform: translateY(-1px);
     }
 
-    .file-input {
-      display: none;
-    }
+    .file-input { display: none; }
 
-    .status-text {
-      font-size: 11px;
-      color: var(--text-soft);
-      margin-top: 6px;
-    }
+    .status-text { font-size: 11px; color: var(--text-soft); margin-top: 6px; }
 
-    /* Table */
     table {
       width: 100%;
       border-collapse: collapse;
@@ -252,9 +216,7 @@
       background: radial-gradient(circle at top left, rgba(15, 23, 42, 0.85), #020617);
     }
 
-    thead {
-      background: var(--table-header-bg);
-    }
+    thead { background: var(--table-header-bg); }
 
     th, td {
       padding: 7px 8px;
@@ -278,43 +240,24 @@
       background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.18), #020617);
     }
 
-    th.sorted-asc,
-    th.sorted-desc {
-      color: var(--accent-strong);
-    }
-
-    th.sorted-asc::after,
-    th.sorted-desc::after {
+    th.sorted-asc, th.sorted-desc { color: var(--accent-strong); }
+    th.sorted-asc::after, th.sorted-desc::after {
       position: absolute;
       right: 8px;
       font-size: 10px;
     }
+    th.sorted-asc::after { content: "▲"; }
+    th.sorted-desc::after { content: "▼"; }
 
-    th.sorted-asc::after {
-      content: "▲";
-    }
-
-    th.sorted-desc::after {
-      content: "▼";
-    }
-
-    tbody tr:nth-child(even) {
-      background: #020617;
-    }
-
-    tbody tr:nth-child(odd) {
-      background: #020617;
-    }
+    tbody tr:nth-child(even),
+    tbody tr:nth-child(odd) { background: #020617; }
 
     tbody tr:hover {
       background: radial-gradient(circle at left, rgba(56, 189, 248, 0.12), #020617);
     }
 
-    td {
-      color: var(--text);
-    }
+    td { color: var(--text); }
 
-    /* Buttons */
     .btn {
       display: inline-flex;
       align-items: center;
@@ -325,7 +268,8 @@
       font-weight: 500;
       border: 1px solid transparent;
       cursor: pointer;
-      transition: background var(--transition-fast), border-color var(--transition-fast), transform 120ms ease-out, box-shadow var(--transition-fast);
+      transition: background var(--transition-fast), border-color var(--transition-fast),
+                  transform 120ms ease-out, box-shadow var(--transition-fast);
       background: rgba(15, 23, 42, 0.95);
       color: var(--text);
     }
@@ -355,14 +299,20 @@
       transform: translateY(-1px);
     }
 
-    .btn:disabled {
-      opacity: 0.6;
-      cursor: default;
-      transform: none;
-      box-shadow: none;
+    .btn-tertiary {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: rgba(56, 189, 248, 0.6);
+      color: var(--accent-strong);
     }
 
-    /* Spinner */
+    .btn-tertiary:hover {
+      background: rgba(8, 47, 73, 0.9);
+      transform: translateY(-1px);
+      box-shadow: 0 10px 22px rgba(8, 47, 73, 0.6);
+    }
+
+    .btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
+
     .spinner {
       width: 16px;
       height: 16px;
@@ -373,6 +323,8 @@
       box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.1);
       animation: spin 600ms linear infinite;
     }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
 
     .spinner-overlay {
       position: absolute;
@@ -386,10 +338,7 @@
       transition: opacity 150ms ease-out;
     }
 
-    .spinner-overlay.visible {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    .spinner-overlay.visible { opacity: 1; pointer-events: auto; }
 
     .spinner-panel {
       display: flex;
@@ -413,13 +362,6 @@
       font-weight: 500;
     }
 
-    @keyframes spin {
-      to {
-        transform: rotate(360deg);
-      }
-    }
-
-    /* Analysis box */
     #analysis {
       white-space: pre-wrap;
       border-radius: var(--radius-md);
@@ -433,10 +375,7 @@
       overflow-y: auto;
     }
 
-    #analysis.empty {
-      color: var(--text-soft);
-      font-style: italic;
-    }
+    #analysis.empty { color: var(--text-soft); font-style: italic; }
 
     .analysis-header {
       display: flex;
@@ -462,17 +401,9 @@
       border: 1px solid rgba(56, 189, 248, 0.7);
     }
 
-    .analysis-label {
-      font-size: 11px;
-      color: var(--text-soft);
-      margin-top: 2px;
-    }
+    .analysis-label { font-size: 11px; color: var(--text-soft); margin-top: 2px; }
 
-    @media (max-width: 900px) {
-      .app-body {
-        flex-direction: column;
-      }
-    }
+    @media (max-width: 900px) { .app-body { flex-direction: column; } }
   </style>
 </head>
 <body>
@@ -483,7 +414,9 @@
           Auto Parts Customers
           <span class="app-title-pill">CSV Explorer</span>
         </div>
-        <div class="app-subtitle">Load your autoparts.csv and sort by spend, purchases, or returns before sending a sample to Together.ai.</div>
+        <div class="app-subtitle">
+          On load, autoloads autoparts.csv from this folder. Use the picker to override with another file.
+        </div>
       </div>
       <div class="header-actions">
         <div class="badge-soft">
@@ -495,7 +428,7 @@
     </header>
 
     <main class="app-body">
-      <!-- Left: table / CSV -->
+      <!-- Left: summary table -->
       <section class="panel-main">
         <div class="card">
           <div class="card-header">
@@ -503,24 +436,24 @@
               <div class="card-title">Customer CSV</div>
               <div class="card-subtitle">Customer_ID · Total_Spend · Total_Purchases · Total_Returns</div>
             </div>
-            <span class="card-tag">100 customers · 4 columns</span>
+            <span class="card-tag">Summary · 4 columns</span>
           </div>
 
           <div class="row" style="justify-content: space-between; margin-bottom: 8px;">
             <div class="input-group">
               <label class="file-input-label">
-                <span>📁 Load CSV</span>
-                <input type="file" id="csvFileInput" class="file-input" accept=".csv" />
+                <span>📁 Load different CSV</span>
+                <input type="file" id="csvFileInputSummary" class="file-input" accept=".csv" />
               </label>
             </div>
             <div class="input-group">
               <span style="font-size: 11px; color: var(--text-soft);">
-                Tip: Use <code>autoparts.csv</code> with 100 synthetic customers.
+                Default: fetches <code>autoparts.csv</code> from this folder.
               </span>
             </div>
           </div>
 
-          <div id="status" class="status-text">No file loaded yet.</div>
+          <div id="status" class="status-text">Loading autoparts.csv…</div>
 
           <table id="customerTable">
             <thead>
@@ -534,7 +467,7 @@
             <tbody></tbody>
           </table>
 
-          <div class="spinner-overlay" id="tableSpinner">
+          <div class="spinner-overlay visible" id="tableSpinner">
             <div class="spinner-panel">
               <div class="spinner-panel-label">Loading</div>
               <div class="spinner"></div>
@@ -544,24 +477,20 @@
         </div>
       </section>
 
-      <!-- Right: Together.ai analysis -->
+      <!-- Right: Together.ai + Full CSV -->
       <section class="panel-side">
         <div class="card" style="min-height: 220px;">
           <div class="card-header">
             <div>
               <div class="card-title">Together.ai Insight</div>
-              <div class="card-subtitle">Send a subset of your customers to DeepSeek for quick analysis.</div>
+              <div class="card-subtitle">Send a subset of customers to DeepSeek for quick analysis.</div>
             </div>
             <span class="card-tag">Top 20 sample</span>
           </div>
 
           <div class="row" style="justify-content: space-between; margin-bottom: 8px;">
-            <button class="btn btn-primary" id="analyzeBtn">
-              <span>⚡ Analyze with Together.ai</span>
-            </button>
-            <button class="btn btn-secondary" id="clearBtn">
-              <span>Clear Output</span>
-            </button>
+            <button class="btn btn-primary" id="analyzeBtn">⚡ Analyze with Together.ai</button>
+            <button class="btn btn-secondary" id="clearBtn">Clear Output</button>
           </div>
 
           <div class="analysis-header">
@@ -572,223 +501,9 @@
             <div class="analysis-header-pill">Auto parts · Summary</div>
           </div>
 
-          <div id="analysis" class="empty">No analysis yet. Load a CSV, then click “Analyze with Together.ai”.</div>
+          <div id="analysis" class="empty">
+            No analysis yet. Data will be ready after autoparts.csv loads.
+          </div>
 
           <div class="spinner-overlay" id="analysisSpinner">
-            <div class="spinner-panel">
-              <div class="spinner-panel-label">Analyzing</div>
-              <div class="spinner"></div>
-              <div>DeepSeek is analyzing your customers…</div>
-            </div>
-          </div>
-        </div>
-      </section>
-    </main>
-  </div>
-
-  <script>
-    // === TOGETHER.AI CONFIG ===
-    const TOGETHER_API_KEY = "tgp_v1_ZiEmZL-257G0_GWsdYcluLYV8URfnTIs-MSd74BrjWc";
-    const TOGETHER_API_URL = "https://api.together.ai/v1/chat/completions";
-    const TOGETHER_MODEL = "deepseek-ai/DeepSeek-V3.1";
-
-    const csvFileInput = document.getElementById('csvFileInput');
-    const statusDiv = document.getElementById('status');
-    const table = document.getElementById('customerTable');
-    const tbody = table.querySelector('tbody');
-    const analyzeBtn = document.getElementById('analyzeBtn');
-    const clearBtn = document.getElementById('clearBtn');
-    const analysisDiv = document.getElementById('analysis');
-    const tableSpinner = document.getElementById('tableSpinner');
-    const analysisSpinner = document.getElementById('analysisSpinner');
-
-    let tableData = [];   // array of row objects {Customer_ID, Total_Spend, Total_Purchases, Total_Returns}
-    let currentSort = { key: null, direction: 'asc' };
-
-    function setTableSpinner(visible) {
-      tableSpinner.classList.toggle('visible', visible);
-    }
-
-    function setAnalysisSpinner(visible) {
-      analysisSpinner.classList.toggle('visible', visible);
-    }
-
-    // --- Simple CSV parser for this dataset (no quoted fields assumed) ---
-    function parseCSV(text) {
-      const lines = text.trim().split(/\r?\n/);
-      const headers = lines[0].split(',');
-      return lines.slice(1).map(line => {
-        const cols = line.split(',');
-        const row = {};
-        headers.forEach((h, i) => {
-          row[h.trim()] = cols[i] !== undefined ? cols[i].trim() : '';
-        });
-        return row;
-      });
-    }
-
-    // --- Render table body from tableData ---
-    function renderTable() {
-      tbody.innerHTML = '';
-      tableData.forEach(row => {
-        const tr = document.createElement('tr');
-        const cId = row['Customer_ID'];
-        const spend = Number(row['Total_Spend'] || 0);
-        const purchases = Number(row['Total_Purchases'] || 0);
-        const returns = Number(row['Total_Returns'] || 0);
-
-        tr.innerHTML = `
-          <td>${cId}</td>
-          <td>${spend.toFixed(2)}</td>
-          <td>${purchases}</td>
-          <td>${returns}</td>
-        `;
-        tbody.appendChild(tr);
-      });
-    }
-
-    // --- Sort handler ---
-    function sortBy(key) {
-      const numeric = (key !== 'Customer_ID'); // numeric sort for spend, purchases, returns
-      if (currentSort.key === key) {
-        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
-      } else {
-        currentSort.key = key;
-        currentSort.direction = 'asc';
-      }
-
-      tableData.sort((a, b) => {
-        let va = a[key];
-        let vb = b[key];
-        if (numeric) {
-          va = Number(va || 0);
-          vb = Number(vb || 0);
-        }
-        if (va < vb) return currentSort.direction === 'asc' ? -1 : 1;
-        if (va > vb) return currentSort.direction === 'asc' ? 1 : -1;
-        return 0;
-      });
-
-      // Update header styles
-      table.querySelectorAll('th').forEach(th => {
-        th.classList.remove('sorted-asc', 'sorted-desc');
-        if (th.dataset.key === key) {
-          th.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
-        }
-      });
-
-      renderTable();
-    }
-
-    // --- File input handler ---
-    csvFileInput.addEventListener('change', event => {
-      const file = event.target.files[0];
-      if (!file) return;
-
-      setTableSpinner(true);
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const text = e.target.result;
-          const rows = parseCSV(text);
-
-          // Extract just the needed columns
-          tableData = rows.map(r => ({
-            Customer_ID: r['Customer_ID'],
-            Total_Spend: r['Total_Spend'],
-            Total_Purchases: r['Total_Purchases'],
-            Total_Returns: r['Total_Returns']
-          }));
-
-          statusDiv.textContent = `Loaded ${tableData.length} customers from ${file.name}.`;
-          currentSort = { key: null, direction: 'asc' };
-          table.querySelectorAll('th').forEach(th => th.classList.remove('sorted-asc', 'sorted-desc'));
-          renderTable();
-        } catch (err) {
-          statusDiv.textContent = 'Error reading CSV: ' + err.message;
-        } finally {
-          setTableSpinner(false);
-        }
-      };
-      reader.readAsText(file);
-    });
-
-    // --- Click-to-sort on headers ---
-    table.querySelectorAll('th').forEach(th => {
-      th.addEventListener('click', () => {
-        const key = th.dataset.key;
-        if (key) sortBy(key);
-      });
-    });
-
-    // --- Together.ai analysis: send small summary of tableData ---
-    async function analyzeWithTogether() {
-      if (!tableData.length) {
-        analysisDiv.classList.add('empty');
-        analysisDiv.textContent = 'Load a CSV first.';
-        return;
-      }
-
-      analyzeBtn.disabled = true;
-      setAnalysisSpinner(true);
-      analysisDiv.classList.remove('empty');
-      analysisDiv.textContent = 'Analyzing with Together.ai…';
-
-      const sampleRows = tableData.slice(0, 20); // first 20 customers
-      const summaryLines = sampleRows.map(r =>
-        `${r.Customer_ID}: spend=${r.Total_Spend}, purchases=${r.Total_Purchases}, returns=${r.Total_Returns}`
-      ).join('\n');
-
-      const userPrompt = `
-You are analyzing auto parts customer summary data.
-Each line is: Customer_ID: spend, purchases, returns.
-
-Data:
-${summaryLines}
-
-Give a concise insight: which customers look highest value, and what patterns in returns do you see?
-`;
-
-      try {
-        const response = await fetch(TOGETHER_API_URL, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': 'Bearer ' + TOGETHER_API_KEY
-          },
-          body: JSON.stringify({
-            model: TOGETHER_MODEL,
-            messages: [
-              { role: 'system', content: 'You are a helpful data analyst for an auto parts retailer.' },
-              { role: 'user', content: userPrompt }
-            ],
-            max_tokens: 512,
-            temperature: 0.2
-          })
-        });
-
-        if (!response.ok) {
-          const txt = await response.text();
-          throw new Error('HTTP ' + response.status + ': ' + txt);
-        }
-
-        const data = await response.json();
-        const content = data.choices?.[0]?.message?.content || '(no content)';
-        analysisDiv.textContent = content;
-      } catch (err) {
-        analysisDiv.textContent = 'Error calling Together.ai: ' + err.message;
-      } finally {
-        analyzeBtn.disabled = false;
-        setAnalysisSpinner(false);
-      }
-    }
-
-    analyzeBtn.addEventListener('click', analyzeWithTogether);
-
-    clearBtn.addEventListener('click', () => {
-      analysisDiv.classList.add('empty');
-      analysisDiv.textContent = 'No analysis yet. Load a CSV, then click “Analyze with Together.ai”.';
-    });
-  </script>
-</body>
-</html>
+            <div class="spinner-pan
