@@ -175,36 +175,6 @@
 
     .row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
 
-    .input-group {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      font-size: 12px;
-      color: var(--text-soft);
-    }
-
-    .file-input-label {
-      padding: 6px 12px;
-      border-radius: var(--radius-pill);
-      border: 1px dashed rgba(148, 163, 184, 0.7);
-      background: rgba(15, 23, 42, 0.8);
-      color: var(--text-soft);
-      cursor: pointer;
-      font-size: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: background var(--transition-fast), border-color var(--transition-fast), transform 120ms ease-out;
-    }
-
-    .file-input-label:hover {
-      background: rgba(30, 64, 175, 0.65);
-      border-color: var(--accent-strong);
-      transform: translateY(-1px);
-    }
-
-    .file-input { display: none; }
-
     .status-text { font-size: 11px; color: var(--text-soft); margin-top: 6px; }
 
     table {
@@ -298,20 +268,6 @@
       color: var(--accent-strong);
       transform: translateY(-1px);
     }
-
-    .btn-tertiary {
-      background: rgba(15, 23, 42, 0.9);
-      border-color: rgba(56, 189, 248, 0.6);
-      color: var(--accent-strong);
-    }
-
-    .btn-tertiary:hover {
-      background: rgba(8, 47, 73, 0.9);
-      transform: translateY(-1px);
-      box-shadow: 0 10px 22px rgba(8, 47, 73, 0.6);
-    }
-
-    .btn:disabled { opacity: 0.6; cursor: default; transform: none; box-shadow: none; }
 
     .spinner {
       width: 16px;
@@ -415,7 +371,7 @@
           <span class="app-title-pill">CSV Explorer</span>
         </div>
         <div class="app-subtitle">
-          On load, autoloads autoparts.csv from this folder. Use the picker to override with another file.
+          Autoloads <code>autoparts.csv</code> from this GitHub repo and analyzes customers with Together.ai.
         </div>
       </div>
       <div class="header-actions">
@@ -439,21 +395,10 @@
             <span class="card-tag">Summary · 4 columns</span>
           </div>
 
-          <div class="row" style="justify-content: space-between; margin-bottom: 8px;">
-            <div class="input-group">
-              <label class="file-input-label">
-                <span>📁 Load different CSV</span>
-                <input type="file" id="csvFileInputSummary" class="file-input" accept=".csv" />
-              </label>
-            </div>
-            <div class="input-group">
-              <span style="font-size: 11px; color: var(--text-soft);">
-                Default: fetches <code>autoparts.csv</code> from this folder.
-              </span>
-            </div>
+          <!-- No file picker anymore -->
+          <div id="status" class="status-text">
+            Loading autoparts.csv from GitHub…
           </div>
-
-          <div id="status" class="status-text">Loading autoparts.csv…</div>
 
           <table id="customerTable">
             <thead>
@@ -477,7 +422,7 @@
         </div>
       </section>
 
-      <!-- Right: Together.ai + Full CSV -->
+      <!-- Right: Together.ai -->
       <section class="panel-side">
         <div class="card" style="min-height: 220px;">
           <div class="card-header">
@@ -506,4 +451,223 @@
           </div>
 
           <div class="spinner-overlay" id="analysisSpinner">
-            <div class="spinner-pan
+            <div class="spinner-panel">
+              <div class="spinner-panel-label">Analyzing</div>
+              <div class="spinner"></div>
+              <div>DeepSeek is analyzing your customers…</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    // === CONFIG: set this to your actual raw GitHub URL ===
+    // Example:
+    // const CSV_URL = 'http://soc-ai.github.io/autoparts.csv';
+    const CSV_URL = 'http://soc-ai.github.io/autoparts.csv';
+
+    const TOGETHER_API_KEY = 'YOUR_TOGETHER_API_KEY_HERE';
+    const TOGETHER_API_URL = 'https://api.together.ai/v1/chat/completions';
+    const TOGETHER_MODEL = 'deepseek-ai/DeepSeek-V3.1';
+
+    const statusDiv = document.getElementById('status');
+    const table = document.getElementById('customerTable');
+    const tbody = table.querySelector('tbody');
+    const tableSpinner = document.getElementById('tableSpinner');
+    const analyzeBtn = document.getElementById('analyzeBtn');
+    const clearBtn = document.getElementById('clearBtn');
+    const analysisDiv = document.getElementById('analysis');
+    const analysisSpinner = document.getElementById('analysisSpinner');
+
+    let tableData = [];
+    let currentSort = { key: null, direction: 'asc' };
+
+    function setTableSpinner(visible) {
+      tableSpinner.classList.toggle('visible', visible);
+    }
+
+    function setAnalysisSpinner(visible) {
+      analysisSpinner.classList.toggle('visible', visible);
+    }
+
+    function parseCSV(text) {
+      const lines = text.trim().split(/\r?\n/);
+      const headers = lines[0].split(',');
+      const rows = lines.slice(1).map(function (line) {
+        const cols = line.split(',');
+        const row = {};
+        headers.forEach(function (h, i) {
+          row[h.trim()] = cols[i] !== undefined ? cols[i].trim() : '';
+        });
+        return row;
+      });
+      return { headers, rows };
+    }
+
+    function renderTable() {
+      tbody.innerHTML = '';
+      tableData.forEach(function (row) {
+        const cId = row.Customer_ID;
+        const spend = Number(row.Total_Spend || 0);
+        const purchases = Number(row.Total_Purchases || 0);
+        const returns = Number(row.Total_Returns || 0);
+        const tr = document.createElement('tr');
+        tr.innerHTML =
+          '<td>' + cId + '</td>' +
+          '<td>' + spend.toFixed(2) + '</td>' +
+          '<td>' + purchases + '</td>' +
+          '<td>' + returns + '</td>';
+        tbody.appendChild(tr);
+      });
+    }
+
+    function sortBy(key) {
+      const numeric = key !== 'Customer_ID';
+      if (currentSort.key === key) {
+        currentSort.direction = currentSort.direction === 'asc' ? 'desc' : 'asc';
+      } else {
+        currentSort.key = key;
+        currentSort.direction = 'asc';
+      }
+
+      tableData.sort(function (a, b) {
+        let va = a[key];
+        let vb = b[key];
+        if (numeric) {
+          va = Number(va || 0);
+          vb = Number(vb || 0);
+        }
+        if (va < vb) return currentSort.direction === 'asc' ? -1 : 1;
+        if (va > vb) return currentSort.direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      table.querySelectorAll('th').forEach(function (th) {
+        th.classList.remove('sorted-asc', 'sorted-desc');
+        if (th.dataset.key === key) {
+          th.classList.add(currentSort.direction === 'asc' ? 'sorted-asc' : 'sorted-desc');
+        }
+      });
+
+      renderTable();
+    }
+
+    table.querySelectorAll('th').forEach(function (th) {
+      th.addEventListener('click', function () {
+        const key = th.dataset.key;
+        if (key) sortBy(key);
+      });
+    });
+
+    async function loadCSVFromGitHub() {
+      setTableSpinner(true);
+      statusDiv.textContent = 'Loading autoparts.csv from GitHub…';
+
+      try {
+        const res = await fetch(CSV_URL);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        const text = await res.text();
+        const parsed = parseCSV(text);
+
+        tableData = parsed.rows.map(function (r) {
+          return {
+            Customer_ID: r['Customer_ID'],
+            Total_Spend: r['Total_Spend'],
+            Total_Purchases: r['Total_Purchases'],
+            Total_Returns: r['Total_Returns']
+          };
+        });
+
+        statusDiv.textContent =
+          'Loaded ' + parsed.rows.length + ' rows from autoparts.csv (GitHub).';
+        currentSort = { key: null, direction: 'asc' };
+        table.querySelectorAll('th').forEach(function (th) {
+          th.classList.remove('sorted-asc', 'sorted-desc');
+        });
+        renderTable();
+      } catch (err) {
+        statusDiv.textContent =
+          'Could not load autoparts.csv from GitHub. Check CSV_URL and that the file is public.';
+        console.error(err);
+      } finally {
+        setTableSpinner(false);
+      }
+    }
+
+    analyzeBtn.addEventListener('click', async function () {
+      if (!tableData.length) {
+        analysisDiv.classList.add('empty');
+        analysisDiv.textContent = 'No data loaded yet. Wait for autoparts.csv to load.';
+        return;
+      }
+
+      analyzeBtn.disabled = true;
+      setAnalysisSpinner(true);
+      analysisDiv.classList.remove('empty');
+      analysisDiv.textContent = 'Analyzing with Together.ai…';
+
+      const sampleRows = tableData.slice(0, 20);
+      const summaryLines = sampleRows.map(function (r) {
+        return r.Customer_ID + ': spend=' + r.Total_Spend +
+               ', purchases=' + r.Total_Purchases +
+               ', returns=' + r.Total_Returns;
+      }).join('\n');
+
+      const userPrompt =
+        'You are analyzing auto parts customer summary data.\n' +
+        'Each line is: Customer_ID: spend, purchases, returns.\n\n' +
+        'Data:\n' + summaryLines + '\n\n' +
+        'Give a concise insight: which customers look highest value, and what patterns in returns do you see?';
+
+      try {
+        const response = await fetch(TOGETHER_API_URL, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + TOGETHER_API_KEY
+          },
+          body: JSON.stringify({
+            model: TOGETHER_MODEL,
+            messages: [
+              { role: 'system', content: 'You are a helpful data analyst for an auto parts retailer.' },
+              { role: 'user', content: userPrompt }
+            ],
+            max_tokens: 512,
+            temperature: 0.2
+          })
+        });
+
+        if (!response.ok) {
+          const txt = await response.text();
+          throw new Error('HTTP ' + response.status + ': ' + txt);
+        }
+
+        const data = await response.json();
+        const content =
+          data.choices &&
+          data.choices[0] &&
+          data.choices[0].message &&
+          data.choices[0].message.content
+            ? data.choices[0].message.content
+            : '(no content)';
+        analysisDiv.textContent = content;
+      } catch (err) {
+        analysisDiv.textContent = 'Error calling Together.ai: ' + err.message;
+      } finally {
+        analyzeBtn.disabled = false;
+        setAnalysisSpinner(false);
+      }
+    });
+
+    clearBtn.addEventListener('click', function () {
+      analysisDiv.classList.add('empty');
+      analysisDiv.textContent =
+        'No analysis yet. Once autoparts.csv loads, click “Analyze with Together.ai”.';
+    });
+
+    document.addEventListener('DOMContentLoaded', loadCSVFromGitHub);
+  </script>
+</body>
+</html>
